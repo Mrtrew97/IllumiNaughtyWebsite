@@ -6,16 +6,21 @@
     <title>Alliance Intelligence // CORE_V2</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* CORE LAYERING FIX */
+        .app-container {
+            position: relative;
+            z-index: 1;
+        }
         /* Spacing Fix: Increased buffer between controls and cards */
         .sticky-wrapper {
             position: sticky; 
             top: 0; 
-            z-index: 100;
+            z-index: 999;
             /* 40px bottom padding ensures cards don't touch the bar on hover lift */
             padding: 10px 0 40px 0;
             backdrop-filter: blur(12px) saturate(150%);
             -webkit-backdrop-filter: blur(12px) saturate(150%);
-            background: rgba(3, 0, 5, 0.5); 
+            background: rgba(3, 0, 5, 0.85); 
             border-bottom: 1px solid rgba(147, 51, 234, 0.05);
         }
 
@@ -32,6 +37,21 @@
             margin-bottom: 20px;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
         }
+
+        /* Ensure cards stay below the header even when hovering */
+        .growth-card {
+            position: relative;
+            z-index: 10;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .growth-card:hover {
+            /* Keep hover z-index lower than the sticky-wrapper (999) */
+            z-index: 11; 
+            transform: translateY(-5px);
+        }
+
+        
 
         .metric-bar { 
             display: flex; 
