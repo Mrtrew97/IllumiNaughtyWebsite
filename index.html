@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliance Dashboard // CORE</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .home-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            margin-top: 40px;
+        }
+        .bento-card {
+            text-decoration: none;
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .bento-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-purple);
+        }
+        .locked-card {
+            cursor: not-allowed;
+            opacity: 0.7;
+            filter: grayscale(0.5);
+        }
+        .locked-card:hover {
+            transform: none;
+            border-color: var(--border-color);
+        }
+        .rank-locked-banner {
+            background: var(--text-dim) !important;
+            color: #000 !important;
+            opacity: 0.8;
+        }
+        .home-footer {
+            grid-column: span 2;
+            padding: 20px;
+            border: 1px dashed var(--border-color);
+            border-radius: 16px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            font-weight: 800;
+            background: rgba(147, 51, 234, 0.03);
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--positive);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 10px;
+            box-shadow: 0 0 10px var(--positive);
+        }
+        .brand-header {
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 10px;
+        }
+        .hint-text {
+            font-size: 0.65rem;
+            color: var(--accent-purple);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="home-layout">
+    <div class="home-container">
+        <div class="brand-header">
+            <div class="stat-label" style="color: var(--accent-purple);">System Status: Authenticated</div>
+            <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 5px 0; color: var(--text-main);">
+                ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// CORE</span>
+            </h1>
+        </div>
+        <div class="bento-grid">
+            <a href="alliance-stats.html" class="growth-card bento-card">
+                <div class="rank-banner rank-std-banner">ACTIVE</div>
+                <div>
+                    <div style="font-size: 1.5rem; margin-bottom: 15px;">📊</div>
+                    <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+                        Execute deep-dive metrics and historical analysis for all registered players above 35 million power in the current KvK.
+                    </p>
+                </div>
+                <div class="hint-text">Initialize Terminal —></div>
+            </a>
+            <a href="-I-Players.html" class="growth-card bento-card">
+                <div class="rank-banner rank-std-banner">ACTIVE</div>
+                <div>
+                    <div style="font-size: 1.5rem; margin-bottom: 15px;">📈</div>
+                    <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">Projector Core</h2>
+                    <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
+                        Tracking 167 & 509. Weekly trend visualization and growth deltas.
+                    </p>
+                </div>
+                <div class="hint-text">Launch Projector —></div>
+            </a>
+            <a href="MatchupTracker.html" class="growth-card bento-card">
+                <div class="rank-banner rank-std-banner">ACTIVE</div>
+                <div>
+                    <div style="font-size: 1.5rem; margin-bottom: 15px;">⚔️</div>
+                    <h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Matchup Tracker</h2>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px; line-height: 1.4;">
+                        Compare and see the difference in values between the alliances during the KVK.
+                    </p>
+                </div>
+                <div class="hint-text">Launch Tracker —></div>
+            </a>
+            <a href="TopPerf.html" class="growth-card bento-card">
+                <div class="rank-banner rank-std-banner">ACTIVE</div>
+                <div>
+                    <div style="font-size: 1.5rem; margin-bottom: 15px;">🏆</div>
+                    <h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Top Performances</h2>
+                    <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px; line-height: 1.4;">
+                        Check the top players for each category overall or by alliance for this KvK.
+                    </p>
+                </div>
+                <div class="hint-text">Launch Leaderboards —></div>
+            </a>
+            <div class="home-footer">
+                <span class="status-dot"></span> SYSTEM ONLINE // 196+ DATA NODES SYNCED // MADE BY DADREW
+            </div>
+        </div>
+    </div>
+</body>
+</html>

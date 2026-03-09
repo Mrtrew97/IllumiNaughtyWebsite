@@ -1,0 +1,39 @@
+// config.js
+const CONFIG = {
+    // Files for: alliance-stats.html, MatchupTracker.html, and TopPerf.html
+    // Sorted Newest to Oldest for the dropdown menus
+    mainDataFiles: [
+        "22-02-2026.csv",
+        "15-02-2026.csv",
+        "08-02-2026.csv",
+        "01-02-2026.csv",
+        "25-01-2026.csv",
+        "18-01-2026.csv",
+        "10-01-2026.csv"
+    ],
+
+    // Folders and files for: -I-Players.html
+    // Files inside folders are sorted Oldest to Newest for timeline tracking
+    iDataFolders: [
+        {
+            name: "02 - KVK 4045 (18-05-2025 to 07-07-2025)",
+            files: ["18-05-2025.csv", "25-05-2025.csv", "01-06-2025.csv", "08-06-2025.csv", "15-06-2025.csv", "29-06-2025.csv", "06-07-2025.csv", "07-07-2025.csv"]
+        },
+        {
+            name: "03 - KVK 7020 (20-07-2025 to 08-09-2025)",
+            files: ["20-07-2025.csv", "27-07-2025.csv", "03-08-2025.csv", "10-08-2025.csv", "17-08-2025.csv", "24-08-2025.csv", "31-08-2025.csv", "07-09-2025.csv", "08-09-2025.csv"]
+        },
+        {
+            name: "04 - KVK 6055 (16-09-2025 to 02-11-2025)",
+            files: ["16-09-2025.csv", "21-09-2025.csv", "05-10-2025.csv", "12-10-2025.csv", "19-10-2025.csv", "02-11-2025.csv"]
+        },
+        {
+            name: "05 - KVK 8015 (16-11-2025 to 21-12-2025)",
+            files: ["16-11-2025.csv", "23-11-2025.csv", "30-11-2025.csv", "07-12-2025.csv", "14-12-2025.csv", "21-12-2025.csv"]
+        },
+        {
+            name: "06 - KVK 4071 (10-01-2026 to 22-02-2026)",
+            files: ["10-01-2026.csv", "18-01-2026.csv", "25-01-2026.csv", "01-02-2026.csv", "08-02-2026.csv", "15-02-2026.csv", "22-02-2026.csv"]
+        }
+    ]
+};

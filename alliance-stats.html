@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliance Intelligence // CORE_V2</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="loading-overlay" id="globalLoader">
+    <div class="loading-text">SYNCING_CORE_FILES...</div>
+</div>
+
+<div class="app-container">
+    <div class="header-nav" id="topNav">
+        <a href="index.html" class="exit-btn">← SYSTEM_RETURN</a>
+        <div id="rowCountDisplay" style="font-weight:900; color: var(--accent-purple); font-size: 0.75rem;">ACTIVE_SUBJECTS: 0</div>
+    </div>
+
+    <div id="fleetView">
+        <div class="sticky-wrapper">
+            <div class="primary-controls">
+                <div class="view-toggle-container">
+                    <input type="radio" name="vMode" id="vSnap" value="single" checked onchange="toggleMode()">
+                    <label for="vSnap">Snapshot</label>
+                    <input type="radio" name="vMode" id="vRange" value="range" onchange="toggleMode()">
+                    <label for="vRange">Progress</label>
+                    <div class="toggle-glider"></div>
+                </div>
+                
+                <div id="startPicker" class="hidden custom-select-wrapper">
+                    <select id="dateStart" onchange="processData()"></select>
+                </div>
+                <div class="custom-select-wrapper">
+                    <select id="dateEnd" onchange="processData()"></select>
+                </div>
+                <div class="custom-select-wrapper">
+                    <select id="allianceSelect" onchange="processData()">
+                        <option value="all">All Servers</option>
+                    </select>
+                </div>
+                <input type="text" id="playerSearch" class="search-box" placeholder="SCAN_SUBJECT_DATABASE..." oninput="filterAndRender()">
+            </div>
+            <div class="metric-bar" id="metricBar"></div>
+        </div>
+        <div class="player-grid" id="mainGrid"></div>
+    </div>
+
+    <div id="soloView" class="hidden">
+        <div class="solo-header" id="soloHeader"></div>
+        <div class="player-grid" id="soloGrid"></div>
+    </div>
+</div>
+
+<script>
+    let currentSort = 'merits';
+    let currentTableData = [];
+    let allianceTagMap = {}; 
+
+    const metrics = {
+        'highest_power': 'Highest Power', 'merits': 'Merits', 'units_killed': 'Total Kills',
+        'killcount_t5': 'T5 Kills', 'killcount_t4': 'T4 Kills', 'killcount_t3': 'T3 Kills',
+        'killcount_t2': 'T2 Kills', 'killcount_t1': 'T1 Kills', 'units_dead': 'Deads',
+        'units_healed': 'Healed', 'gold_spent': 'Gold Spent', 'wood_spent': 'Wood Spent',
+        'stone_spent': 'Stone Spent', 'mana_spent': 'Mana Spent'
+    };
+
+    const numericFields = Object.keys(metrics);
+
+    function init() {
+        const bar = document.getElementById('metricBar');
+        Object.entries(metrics).forEach(([key, label]) => {
+            const btn = document.createElement('button');
+            btn.className = `metric-btn ${key === currentSort ? 'active' : ''}`;
+            btn.textContent = label;
+            btn.onclick = () => {
+                document.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSort = key;
+                filterAndRender();
+            };
+            bar.appendChild(btn);
+        });
+        scanFiles();
+    }
+
+    function toggleMode() {
+        const isRange = document.getElementById('vRange').checked;
+        document.getElementById('startPicker').classList.toggle('hidden', !isRange);
+        processData();
+    }
+
+    async function scanFiles() {
+        showLoader(true);
+        try {
+            const response = await fetch('data/');
+            const html = await response.text();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const links = Array.from(tempDiv.querySelectorAll('a'));
+            let foundFiles = links.map(link => link.getAttribute('href').split('/').pop()).filter(name => name.endsWith('.csv'));
+            foundFiles.sort((a, b) => parseDate(b) - parseDate(a));
+
+            if (foundFiles.length > 0) {
+                const startSelect = document.getElementById('dateStart');
+                const endSelect = document.getElementById('dateEnd');
+                startSelect.innerHTML = ""; endSelect.innerHTML = "";
+                foundFiles.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name; opt.textContent = name.replace('.csv','');
+                    startSelect.appendChild(opt.cloneNode(true));
+                    endSelect.appendChild(opt);
+                });
+                endSelect.selectedIndex = 0;
+                if (foundFiles.length > 1) startSelect.selectedIndex = 1;
+                const oldestRes = await fetch(`data/${foundFiles[foundFiles.length-1]}`);
+                updateAllianceList(await oldestRes.text());
+                processData();
+            }
+        } catch (e) { console.error(e); }
+        showLoader(false);
+    }
+
+    async function processData() {
+        showLoader(true);
+        const isRange = document.getElementById('vRange').checked;
+        const selA = document.getElementById('dateStart').value;
+        const selB = document.getElementById('dateEnd').value;
+        const selectedServer = document.getElementById('allianceSelect').value;
+
+        try {
+            let startFile, endFile;
+            if (isRange) {
+                const dateA = parseDate(selA), dateB = parseDate(selB);
+                startFile = (dateA < dateB) ? selA : selB;
+                endFile = (dateA < dateB) ? selB : selA;
+            } else endFile = selB;
+
+            const endRes = await fetch(`data/${endFile}`);
+            const endData = parseCSV(await endRes.text());
+            
+            let filteredRaw = Object.values(endData).filter(row => (parseInt(row.highest_power) || 0) >= 35000000);
+            if (selectedServer !== "all") filteredRaw = filteredRaw.filter(row => row.home_server === selectedServer);
+
+            currentTableData = filteredRaw.map(row => {
+                row.alliance_tag = allianceTagMap[row.home_server] || '---';
+                return { ...row, _isDiff: false };
+            });
+
+            if (isRange && startFile) {
+                const startRes = await fetch(`data/${startFile}`);
+                const startData = parseCSV(await startRes.text());
+                currentTableData = currentTableData.map(newRow => {
+                    const diffRow = { ...newRow, _isDiff: true, _deltas: {} };
+                    const oldRow = startData[newRow.lord_id];
+                    numericFields.forEach(field => {
+                        let newVal = parseInt(newRow[field]) || 0;
+                        let oldVal = (oldRow) ? (parseInt(oldRow[field]) || 0) : newVal;
+                        diffRow._deltas[field] = newVal - oldVal;
+                    });
+                    return diffRow;
+                });
+            }
+            filterAndRender();
+        } catch (e) { console.error(e); }
+        showLoader(false);
+    }
+
+    function filterAndRender() {
+        const query = document.getElementById('playerSearch').value.toLowerCase().trim();
+        currentTableData.sort((a, b) => {
+            let valA = (a._isDiff && currentSort !== 'highest_power') ? (a._deltas[currentSort]||0) : (parseInt(a[currentSort])||0);
+            let valB = (b._isDiff && currentSort !== 'highest_power') ? (b._deltas[currentSort]||0) : (parseInt(b[currentSort])||0);
+            return valB - valA;
+        });
+        currentTableData.forEach((row, idx) => row._globalRank = idx + 1);
+        let displayData = currentTableData.filter(row => (row.name || '').toLowerCase().includes(query) || (row.lord_id || '').toLowerCase().includes(query));
+
+        document.getElementById('rowCountDisplay').innerText = `ACTIVE_SUBJECTS: ${displayData.length}`;
+        const container = document.getElementById('mainGrid');
+        container.innerHTML = ""; 
+
+        displayData.forEach((row) => {
+            const rankPos = row._globalRank;
+            const card = document.createElement('div');
+            let glowClass = "glow-purple", bannerClass = "rank-std-banner";
+
+            if (rankPos === 1) { glowClass = "glow-1"; bannerClass = "rank-1-banner"; }
+            else if (rankPos === 2) { glowClass = "glow-2"; bannerClass = "rank-2-banner"; }
+            else if (rankPos === 3) { glowClass = "glow-3"; bannerClass = "rank-3-banner"; }
+            else if (rankPos <= 10) { bannerClass = "rank-high-banner"; }
+
+            card.className = `growth-card ${glowClass}`;
+            card.onclick = () => enterSoloMode(row.lord_id);
+            const currentVal = parseInt(row[currentSort]) || 0;
+            let deltaHTML = row._isDiff ? `<span class="diff-tag ${row._deltas[currentSort] >= 0 ? 'positive' : 'negative'}">${row._deltas[currentSort] >= 0 ? '▲' : '▼'} ${Math.abs(row._deltas[currentSort]).toLocaleString()}</span>` : "";
+
+            card.innerHTML = `
+                <div class="rank-banner ${bannerClass}">#${rankPos}</div>
+                <div style="margin-bottom:18px; padding-right: 70px;">
+                    <h3 style="margin:0; font-size:1.7rem; font-weight:800; color:var(--text-title);">${row.name}</h3>
+                    <div style="font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; margin-top:6px;">ID: ${row.lord_id}</div>
+                    <div style="color:var(--accent-purple); font-size:0.75rem; font-weight:900; margin-top:4px;">[${row.alliance_tag}]</div>
+                </div>
+                <div style="background:rgba(10, 2, 15, 0.5); padding:16px; border-radius:14px; border:1px solid var(--border-color);">
+                    <div class="stat-label">${metrics[currentSort]}</div>
+                    <div style="display:flex; align-items:center;"><div class="stat-value">${currentVal.toLocaleString()}</div>${deltaHTML}</div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function enterSoloMode(id) {
+        const row = currentTableData.find(r => r.lord_id === id);
+        if (!row) return;
+        document.getElementById('fleetView').classList.add('hidden');
+        document.getElementById('topNav').classList.add('hidden');
+        document.getElementById('soloView').classList.remove('hidden');
+        const header = document.getElementById('soloHeader');
+        header.innerHTML = `<div><h1 style="margin:8px 0; font-size:3.5rem; font-weight:900; color:var(--text-title);">${row.name}</h1><div style="color:var(--text-dim); font-size:0.75rem; font-weight:900;">ID: ${row.lord_id} // SERVER: ${row.home_server} // ALLIANCE: [${row.alliance_tag}]</div></div><button class="exit-btn" onclick="exitSoloMode()">TERMINATE_VIEW</button>`;
+        const grid = document.getElementById('soloGrid'); grid.innerHTML = "";
+        Object.keys(metrics).forEach(mKey => {
+            const card = document.createElement('div'); card.className = "growth-card glow-purple"; card.style.cursor = "default"; card.style.background = "rgba(10, 2, 15, 0.4)"; 
+            const val = parseInt(row[mKey]) || 0;
+            let diffHTML = row._isDiff ? `<div class="diff-tag ${row._deltas[mKey] >= 0 ? 'positive' : 'negative'}" style="margin-left:0; margin-top:8px; display:inline-block;">${row._deltas[mKey] >= 0 ? '▲' : '▼'} ${Math.abs(row._deltas[mKey]).toLocaleString()}</div>` : "";
+            card.innerHTML = `<div class="stat-label">${metrics[mKey]}</div><div class="stat-value" style="font-size:1.8rem;">${val.toLocaleString()}</div>${diffHTML}`;
+            grid.appendChild(card);
+        });
+        window.scrollTo(0,0);
+    }
+
+    function exitSoloMode() { 
+        document.getElementById('soloView').classList.add('hidden'); 
+        document.getElementById('fleetView').classList.remove('hidden'); 
+        document.getElementById('topNav').classList.remove('hidden'); 
+    }
+    
+    function showLoader(show) { document.getElementById('globalLoader').style.display = show ? 'flex' : 'none'; }
+    function parseDate(f) { const p = f.replace('.csv','').split('-'); return new Date(p[2], p[1]-1, p[0]); }
+    function cleanCell(v) { return (v || "").replace(/^"|"$/g, '').trim(); }
+    function splitCSVLine(l) {
+        const res = []; let cur = "", inQ = false;
+        for (let char of l) { if (char === '"') inQ = !inQ; else if (char === ',' && !inQ) { res.push(cur); cur = ""; } else cur += char; }
+        res.push(cur); return res;
+    }
+    function parseCSV(text) {
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        if (!lines.length) return {};
+        const headers = splitCSVLine(lines[0]).map(h => cleanCell(h).toLowerCase());
+        return lines.slice(1).reduce((acc, line) => {
+            const cells = splitCSVLine(line); const row = {};
+            headers.forEach((h, i) => { let val = cleanCell(cells[i]); if (numericFields.includes(h)) val = val.replace(/,/g, ''); row[h] = val; });
+            if (row.lord_id) acc[row.lord_id] = row; return acc;
+        }, {});
+    }
+
+    function updateAllianceList(csvText) {
+        const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+        if (!lines.length) return;
+        const headers = splitCSVLine(lines[0]).map(h => cleanCell(h).toLowerCase());
+        const sIdx = headers.indexOf('home_server'), tIdx = headers.indexOf('alliance_tag');
+        const serverMap = {}; 
+        lines.slice(1).forEach(line => {
+            const cells = splitCSVLine(line); const sID = cleanCell(cells[sIdx]), tag = cleanCell(cells[tIdx]);
+            if (sID && tag && tag !== "null") { if (!serverMap[sID]) serverMap[sID] = {}; serverMap[sID][tag] = (serverMap[sID][tag] || 0) + 1; }
+        });
+        const select = document.getElementById('allianceSelect');
+        select.innerHTML = '<option value="all">All Servers</option>';
+        allianceTagMap = {};
+        Object.keys(serverMap).sort((a,b)=>parseInt(a)-parseInt(b)).forEach(id => {
+            const tags = serverMap[id]; const bestTag = Object.keys(tags).reduce((a, b) => tags[a] > tags[b] ? a : b);
+            allianceTagMap[id] = bestTag; 
+            const opt = document.createElement('option'); opt.value = id; opt.textContent = `${bestTag} (${id})`; select.appendChild(opt);
+        });
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
