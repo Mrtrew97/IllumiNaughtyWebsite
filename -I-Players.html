@@ -18,7 +18,7 @@
         <div id="navActionContainer">
             <button class="exit-btn" onclick="window.location.href='index.html'">← SYSTEM_RETURN</button>
         </div>
-        <div id="subjectCount" style="font-size: 0.75rem; font-weight: 900; color: var(--accent-purple); letter-spacing: 2px;">ACTIVE_SUBJECTS // --</div>
+        <div id="subjectCount" style="font-size: 0.75rem; font-weight: 900; color: var(--accent-purple); letter-spacing: 2px;">ACTIVE_MEMBERS // --</div>
     </div>
 
     <div class="sticky-wrapper" id="controlsWrapper">
@@ -239,7 +239,7 @@
             return b.sheetCount - a.sheetCount;
         });
 
-        document.getElementById('subjectCount').textContent = `ACTIVE_SUBJECTS // ${sorted.length}`;
+        document.getElementById('subjectCount').textContent = `ACTIVE_MEMBERS // ${sorted.length}`;
 
         sorted.forEach((data, index) => {
             const lordId = data.latestStats.lord_id || data.latestStats.id;
@@ -298,9 +298,9 @@
         header.className = 'solo-header';
         header.innerHTML = `
             <div>
-                <div class="stat-label">SUBJECT_ANALYSIS</div>
+                <div class="stat-label">MEMBER_ANALYSIS</div>
                 <h2 style="font-size:3rem; margin:10px 0; color:var(--text-title);">${data.latestStats.name}</h2>
-                <div class="stat-label">SUBJECT_ID: ${id}</div>
+                <div class="stat-label">MEMBER_ID: ${id}</div>
             </div>
         `;
         grid.appendChild(header);
