@@ -38,7 +38,7 @@
 </div>
 
 <script>
-    // CORRECTED BASE_PATH TO MATCH GITHUB REPOSITORY
+    // CORRECTED PATH: Points directly to the folder in your repo
     const BASE_PATH = "-I-Data/"; 
     const POWER_FLOOR = 35000000;
     const MIN_SHEETS = 2; 
@@ -67,11 +67,6 @@
         'mana_spent': 'MANA SPENT'
     };
 
-    function parseDate(fn) {
-        const p = fn.replace('.csv','').split('-');
-        return p.length === 3 ? new Date(p[2], p[1]-1, p[0]) : new Date(0);
-    }
-
     function cleanName(raw) {
         if (raw === "ALL_KVKS") return "★ ALL KVKS";
         return raw.replace(/^\d+\s*-\s*/, '');
@@ -80,7 +75,7 @@
     async function init() {
         createMetricButtons();
         try {
-            // Ensure config.js is loaded or fetch the json file correctly
+            // Fetches your JSON file from the data folder
             const res = await fetch('data/files.json');
             if (!res.ok) throw new Error('Could not load files.json');
             
@@ -144,7 +139,6 @@
         for (const folderMeta of fileListData.iDataFolders) {
             const folderName = folderMeta.name;
             const files = folderMeta.files;
-            
             if (files.length < 2) continue;
 
             const firstFile = `${BASE_PATH}${folderName}/${files[0]}`;
@@ -346,9 +340,9 @@
     }
 
     function createChart(canvasId, data, metricKey) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
+        const el = document.getElementById(canvasId);
+        if(!el) return;
+        const ctx = el.getContext('2d');
         let graphTimeline = (isAllKvksMode) ? data.ends : data.timeline;
 
         new Chart(ctx, {
