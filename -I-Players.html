@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Intelligence Core // DRILLDOWN_V7.1</title>
+<title>Intelligence Core // DRILLDOWN_V7.2</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -301,7 +301,7 @@ document.getElementById('navActionContainer').innerHTML = `<button class="exit-b
 const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksMode ? 1 : MIN_SHEETS)).sort((a,b) => {
 const tA = isGrowth ? a.growthTimeline : a.timeline;
 const tB = isGrowth ? b.growthTimeline : b.timeline;
-// SORT BY LAST DELTA (GROWTH) OR LAST TOTAL
+// GRID SORT: Always use last entry
 const valA = tA[tA.length - 1][currentSortMetric];
 const valB = tB[tB.length - 1][currentSortMetric];
 return (valB || 0) - (valA || 0);
@@ -318,7 +318,7 @@ card.className = `growth-card ${index < 3 ? 'glow-'+(index+1) : 'glow-purple'}`;
 card.onclick = () => { selectedPlayerId = lordId; renderDisplay(); };
 
 const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-// UPDATED: Use the last delta/total for display value
+// GRID VALUE: Strictly last delta/total
 let displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric];
 
 let deltaHTML = "";
@@ -329,7 +329,6 @@ const delta = isAllKvksMode ?
 deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} ${isAllKvksMode ? 'VS LAST KVK' : 'THIS KVK'}</div>`;
 }
 
-// UPDATED: Text labels as requested
 let displayLabel = metrics[currentSortMetric];
 if (isGrowth) {
 displayLabel = `${metrics[currentSortMetric]} IN LAST KVK`;
@@ -372,8 +371,8 @@ grid.appendChild(header);
 
 Object.keys(metrics).forEach(mKey => {
 const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-// Solo mode shows current/latest entry
-let displayVal = activeTimeline[activeTimeline.length - 1][mKey] || 0;
+// SOLO VALUE: Math.max for Growth mode, Last entry for Total mode
+let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[mKey] || 0)) : activeTimeline[activeTimeline.length - 1][mKey] || 0;
 
 let deltaHTML = "";
 if (!isGrowth) {
@@ -381,10 +380,10 @@ const delta = isAllKvksMode ? (displayVal - (data.ends.length > 1 ? data.ends[da
 deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} VS LAST KVK</div>`;
 }
 
-// Updated solo labels to match request
+// SOLO LABELS: Growth mode shows Record labels, Total mode shows standard
 let displayLabel = metrics[mKey];
 if (isGrowth) {
-displayLabel = `${metrics[mKey]} IN LAST KVK`;
+displayLabel = mKey === 'highest_power' ? "HIGHEST POWER GAINED IN A KVK" : `MOST ${metrics[mKey]} GOTTEN IN A KVK`;
 }
 
 const mini = document.createElement('div');
@@ -419,7 +418,7 @@ options: {
 responsive: true, maintainAspectRatio: false, 
 plugins: { legend: { display: false } }, 
 scales: { 
-x: { ticks: { color: '#9d8ba1', font: { size: isSolo ? 12 : 12, weight: 'bold' }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+x: { ticks: { color: '#9d8ba1', font: { size: isSolo ? 10 : 8, weight: 'bold' }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
 y: { display: false } 
 } 
 }
