@@ -128,8 +128,9 @@
     async function loadDynamicAllKvks() {
         const latestFolder = fileListData.iDataFolders[fileListData.iDataFolders.length - 1];
         const latestFiles = latestFolder.files;
-        // Fix: Removed encodeURIComponent for GitHub path compatibility
-        const latestPath = BASE_PATH + latestFolder.name + "/" + latestFiles[latestFiles.length - 1];
+        // Fix: Case-correction for KVK -> KvK to match Repo folders
+        const fixedFolderName = latestFolder.name.replace('KVK', 'KvK');
+        const latestPath = BASE_PATH + fixedFolderName + "/" + latestFiles[latestFiles.length - 1];
         
         const latestResp = await fetch(latestPath);
         if (!latestResp.ok) return;
@@ -137,7 +138,7 @@
         const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
         for (const folderMeta of fileListData.iDataFolders) {
-            const folderName = folderMeta.name;
+            const folderName = folderMeta.name.replace('KVK', 'KvK');
             const files = folderMeta.files;
             if (files.length < 2) continue;
 
@@ -178,7 +179,9 @@
         if (!folderMeta) return;
 
         const files = folderMeta.files;
-        const pathPrefix = BASE_PATH + folderName + "/";
+        // Fix: Case-correction for KVK -> KvK to match Repo folders
+        const fixedFolder = folderName.replace('KVK', 'KvK');
+        const pathPrefix = BASE_PATH + fixedFolder + "/";
         
         const latestResp = await fetch(pathPrefix + files[files.length - 1]);
         if (!latestResp.ok) return;
