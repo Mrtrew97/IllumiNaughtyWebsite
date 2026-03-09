@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligence Core // DRILLDOWN_V6</title>
+    <title>Intelligence Core // DRILLDOWN_V7</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -18,7 +18,7 @@
             display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 20px;
         }
 
-        /* MINIMALIST PILL SWITCH - UNIFIED WHITE */
+        /* MINIMALIST PILL SWITCH */
         .view-toggle-container {
             display: flex; 
             align-items: center; 
@@ -33,7 +33,7 @@
         .toggle-btn {
             background: transparent;
             border: none;
-            color: var(--text-dim); /* Dim white/grey when inactive */
+            color: var(--text-dim);
             padding: 0 18px;
             height: 100%;
             font-size: 0.65rem;
@@ -49,7 +49,7 @@
             border-radius: 50px;
         }
         .toggle-btn.active {
-            color: #ffffff !important; /* Force pure white for both modes */
+            color: #ffffff !important;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         }
         .pill-slider {
@@ -331,7 +331,7 @@
                 <div style="font-size:0.65rem; color:var(--text-dim); font-weight:900; margin-top:4px;">ID: ${lordId}</div>
                 <div style="margin:20px 0;">
                     <div class="stat-value" style="font-size:1.4rem;">${curVal.toLocaleString()}</div>
-                    <div class="stat-label">${isGrowth ? 'KVK GROWTH: ' : ''}${metrics[currentSortMetric]}</div>
+                    <div class="stat-label">${metrics[currentSortMetric]}</div>
                     ${deltaHTML}
                 </div>
                 <div class="chart-container"><canvas id="chart-${lordId}"></canvas></div>
@@ -362,15 +362,29 @@
 
         Object.keys(metrics).forEach(mKey => {
             const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-            const curVal = activeTimeline[activeTimeline.length - 1][mKey] || 0;
+            
+            let displayVal;
+            if (isGrowth) {
+                // Find highest growth value for this metric
+                displayVal = Math.max(...activeTimeline.map(t => t[mKey] || 0));
+            } else {
+                displayVal = activeTimeline[activeTimeline.length - 1][mKey] || 0;
+            }
+
             let deltaHTML = "";
             if (!isGrowth) {
-                const delta = isAllKvksMode ? (curVal - (data.ends.length > 1 ? data.ends[data.ends.length - 2][mKey] : 0)) : (curVal - (data.timeline[0][mKey] || 0));
+                const delta = isAllKvksMode ? (displayVal - (data.ends.length > 1 ? data.ends[data.ends.length - 2][mKey] : 0)) : (displayVal - (data.timeline[0][mKey] || 0));
                 deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()}</div>`;
             }
+
             const mini = document.createElement('div');
             mini.className = "growth-card glow-purple"; mini.style.cursor = "default";
-            mini.innerHTML = `<div class="stat-label">${isGrowth ? 'GROWTH ' : ''}${metrics[mKey]}</div><div class="stat-value" style="font-size:1.8rem;">${curVal.toLocaleString()}</div>${deltaHTML}<div class="chart-container" style="height:180px;"><canvas id="solo-${mKey}"></canvas></div>`;
+            mini.innerHTML = `
+                <div class="stat-label">${isGrowth ? 'PEAK GROWTH ' : ''}${metrics[mKey]}</div>
+                <div class="stat-value" style="font-size:1.8rem;">${displayVal.toLocaleString()}</div>
+                ${deltaHTML}
+                <div class="chart-container" style="height:180px;"><canvas id="solo-${mKey}"></canvas></div>
+            `;
             grid.appendChild(mini);
             createChart(`solo-${mKey}`, activeTimeline, mKey, true);
         });
@@ -388,7 +402,13 @@
                 labels: timeline.map(t => t.label),
                 datasets: [{ 
                     data: timeline.map(t => t[metricKey]), 
-                    borderColor: '#9333ea', pointRadius: isSolo ? 4 : 2, tension: 0.3, fill: false, borderWidth: 2 
+                    borderColor: '#9333ea', 
+                    pointRadius: isSolo ? 5 : 3, // Slightly larger base dots
+                    pointHoverRadius: 8, // Significantly easier to hover
+                    pointHitRadius: 15, // Large invisible hit area for better UX
+                    tension: 0.3, 
+                    fill: false, 
+                    borderWidth: 2 
                 }]
             },
             options: { 
