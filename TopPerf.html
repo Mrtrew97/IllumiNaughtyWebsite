@@ -240,6 +240,7 @@
     let fileDataCache = {};
     let fullPerformanceData = [];
     let masterAllianceMap = {};
+    let fileListData = {};
     const POWER_THRESHOLD = 35000000;
     let currentMetric = 'highest_power';
     let currentMode = 'growth';
@@ -285,11 +286,6 @@
         });
     }
 
-    function dateFromFilename(name) {
-        const parts = name.replace('.csv', '').split('-');
-        return parts.length !== 3 ? new Date(0) : new Date(parts[2], parts[1] - 1, parts[0]);
-    }
-
     function createMetricButtons() {
         const bar = document.getElementById('metricBar');
         bar.innerHTML = "";
@@ -311,35 +307,43 @@
         showLoader(true);
         createMetricButtons();
         try {
-            const response = await fetch('data/');
-            const html = await response.text();
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            const links = Array.from(tempDiv.querySelectorAll('a'));
-            let foundFiles = links.map(link => link.getAttribute('href').split('/').pop()).filter(name => name.endsWith('.csv'));
+            const response = await fetch('data/files.json');
+            if (!response.ok) throw new Error('Could not load files.json');
+            
+            fileListData = await response.json();
+            const foundFiles = fileListData.mainDataFiles;
             
             if (foundFiles.length === 0) return;
-            const fileObjects = foundFiles.map(name => ({ name, date: dateFromFilename(name) }));
-            fileObjects.sort((a, b) => a.date - b.date);
 
-            const oldestFile = fileObjects[0].name;
-            const masterRes = await fetch(`data/${oldestFile}`);
+            const oldestFile = foundFiles[foundFiles.length-1];
+            const masterRes = await fetch(oldestFile);
             const masterData = parseCSV(await masterRes.text());
+            
             masterData.forEach(row => {
                 const sID = row.home_server;
-                if (sID && row.alliance_tag && !masterAllianceMap[sID]) masterAllianceMap[sID] = row.alliance_tag;
+                if (sID && row.alliance_tag && !masterAllianceMap[sID]) {
+                    masterAllianceMap[sID] = row.alliance_tag;
+                }
             });
+
             document.getElementById('namingSourceLabel').innerText = `TAG_SOURCE: ${oldestFile.replace('.csv','')}`;
 
             const sSelect = document.getElementById('dateStart');
             const eSelect = document.getElementById('dateEnd');
-            fileObjects.forEach(obj => {
+            
+            foundFiles.forEach(file => {
                 const opt = document.createElement('option');
-                opt.value = obj.name; opt.textContent = obj.name.replace('.csv','');
+                opt.value = file;
+                opt.textContent = file.replace('.csv','').replace('data/','');
                 sSelect.appendChild(opt.cloneNode(true));
                 eSelect.appendChild(opt);
             });
-            if(fileObjects.length > 1) { sSelect.selectedIndex = 0; eSelect.selectedIndex = fileObjects.length - 1; }
+
+            if(foundFiles.length > 1) {
+                sSelect.selectedIndex = 0;
+                eSelect.selectedIndex = foundFiles.length - 1;
+            }
+            
             await loadPerformanceData();
         } catch (e) { console.error(e); }
         showLoader(false);
@@ -350,8 +354,8 @@
         const endFile = document.getElementById('dateEnd').value;
         if (!startFile || !endFile) return;
 
-        if (!fileDataCache[startFile]) fileDataCache[startFile] = parseCSV(await (await fetch(`data/${startFile}`)).text());
-        if (!fileDataCache[endFile]) fileDataCache[endFile] = parseCSV(await (await fetch(`data/${endFile}`)).text());
+        if (!fileDataCache[startFile]) fileDataCache[startFile] = parseCSV(await (await fetch(startFile)).text());
+        if (!fileDataCache[endFile]) fileDataCache[endFile] = parseCSV(await (await fetch(endFile)).text());
 
         updateAllianceDropdown();
         calculateRankings(fileDataCache[startFile], fileDataCache[endFile], currentMetric);
@@ -364,7 +368,8 @@
         dropdown.innerHTML = '<option value="ALL">ALL_PLAYERS</option>';
         sIDs.forEach(sid => {
             const opt = document.createElement('option');
-            opt.value = sid; opt.textContent = `${masterAllianceMap[sid]} [${sid}]`;
+            opt.value = sid; 
+            opt.textContent = `${masterAllianceMap[sid]} [${sid}]`;
             dropdown.appendChild(opt);
         });
         dropdown.value = currentVal;
