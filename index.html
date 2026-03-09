@@ -317,6 +317,8 @@
             card.onclick = () => { selectedPlayerId = lordId; renderDisplay(); };
             
             const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
+            
+            // STRICT GRID LOGIC: Always use the last item in the array
             let displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric];
 
             let deltaHTML = "";
@@ -327,7 +329,7 @@
                 deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} ${isAllKvksMode ? 'VS LAST KVK' : 'THIS KVK'}</div>`;
             }
 
-            // GRID VIEW LABEL LOGIC
+            // STRICT GRID LABELS
             let displayLabel = metrics[currentSortMetric];
             if (isGrowth) {
                 displayLabel = `${metrics[currentSortMetric]} IN LAST KVK`;
@@ -371,7 +373,7 @@
         Object.keys(metrics).forEach(mKey => {
             const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
             
-            // SOLO MODE STILL USES PEAK (MAX) LOGIC
+            // SOLO MODE STILL USES PEAK LOGIC FOR GROWTH
             let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[mKey] || 0)) : activeTimeline[activeTimeline.length - 1][mKey] || 0;
 
             let deltaHTML = "";
