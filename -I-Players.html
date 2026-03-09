@@ -3,128 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligence Core // DRILLDOWN_V7</title>
+    <title>Intelligence Core // DRILLDOWN_V8.1</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* CORE LAYERING & STICKY FIXES */
         .app-container { position: relative; z-index: 1; }
         .sticky-wrapper {
             position: sticky; top: 0; z-index: 999; padding: 10px 0 20px 0;
             background: transparent; backdrop-filter: blur(12px) saturate(150%);
             -webkit-backdrop-filter: blur(12px) saturate(150%);
         }
-        .primary-controls {
-            display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 20px;
-        }
-
-        /* EXACT SOLO-SYNCED PILL SWITCH STYLING */
+        .primary-controls { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 20px; }
         .view-toggle-container {
-            display: flex; 
-            align-items: center; 
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50px; 
-            padding: 4px;
-            height: 34px;
-            width: fit-content;
-            position: relative;
-            border: 1px solid rgba(147, 51, 234, 0.3);
+            display: flex; align-items: center; background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px; padding: 4px; height: 34px; width: fit-content;
+            position: relative; border: 1px solid rgba(147, 51, 234, 0.3);
         }
         .toggle-btn {
-            background: transparent;
-            border: none;
-            color: #ffffff !important; /* Force pure white for both buttons */
-            padding: 0 18px;
-            height: 100%;
-            font-size: 0.65rem;
-            font-weight: 900;
-            cursor: pointer;
-            letter-spacing: 1.5px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50px;
-            text-transform: uppercase;
-        }
-        .toggle-btn.active {
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            background: transparent; border: none; color: #ffffff !important; 
+            padding: 0 18px; height: 100%; font-size: 0.65rem; font-weight: 900;
+            cursor: pointer; letter-spacing: 1.5px; transition: all 0.3s ease;
+            position: relative; z-index: 2; text-transform: uppercase;
         }
         .pill-slider {
-            position: absolute;
-            background: var(--accent-purple);
-            height: calc(100% - 8px);
-            top: 4px;
-            left: 4px;
-            border-radius: 50px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1;
-            box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+            position: absolute; background: var(--accent-purple); height: calc(100% - 8px);
+            top: 4px; left: 4px; border-radius: 50px; transition: all 0.3s ease;
+            z-index: 1; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
         }
-
-        .player-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px; padding: 40px 0; position: relative;
-        }
-        .growth-card {
-            position: relative; z-index: 10;
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .growth-card:hover { z-index: 11; transform: translateY(-8px); }
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; padding: 40px 0; }
+        .growth-card { position: relative; z-index: 10; transition: transform 0.3s ease; cursor: pointer; }
+        .growth-card:hover { transform: translateY(-8px); }
         .metric-bar { display: flex; gap: 6px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
-        .metric-bar::-webkit-scrollbar { display: none; }
-
-        /* CENTERED SOLO HEADER */
-        .solo-header {
-            grid-column: 1 / -1;
-            padding: 40px 0 60px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-        }
-        .solo-header h2 {
-            font-size: 3.5rem;
-            margin: 10px 0;
-            color: var(--text-title);
-            font-weight: 900;
-            text-transform: uppercase;
-        }
+        .solo-header { grid-column: 1 / -1; padding: 40px 0; text-align: center; }
+        .solo-header h2 { font-size: 3.5rem; color: var(--text-title); font-weight: 900; }
         .chart-container { height: 160px; margin-top: 15px; }
-        .delta-text { font-weight: 900; font-size: 0.75rem; margin-top: 4px; letter-spacing: 1px; }
-        .positive { color: #10b981; }
-        .negative { color: #ef4444; }
+        .stat-label { font-size: 0.65rem; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-family: 'Courier New', monospace; font-weight: 900; color: #fff; }
     </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loader"><div class="loading-text">INITIALIZING_CORE_SYSTEM...</div></div>
+<div class="loading-overlay" id="loader"><div class="loading-text">UNIFYING_LOGIC_STREAM...</div></div>
 
 <div class="app-container">
-    <div class="header-nav" id="headerNav" style="position: relative; z-index: 1000;">
+    <div class="header-nav">
         <div id="navActionContainer">
             <button class="exit-btn" onclick="window.location.href='index.html'">← SYSTEM_RETURN</button>
         </div>
-        <div id="subjectCount" style="font-size: 0.75rem; font-weight: 900; color: var(--accent-purple); letter-spacing: 2px;">ACTIVE_MEMBERS // --</div>
+        <div id="subjectCount" style="font-size: 0.75rem; font-weight: 900; color: var(--accent-purple);">ACTIVE_MEMBERS // --</div>
     </div>
 
     <div id="drilldownContent">
         <div class="sticky-wrapper" id="controlsWrapper">
             <div class="primary-controls">
-                <div class="custom-select-wrapper">
-                    <select id="seasonFolder" onchange="handleFolderChange()">
-                        <option value="">-- SELECT DATA FOLDER --</option>
-                        <option value="ALL_KVKS">★ ALL KVKS</option>
-                    </select>
-                </div>
+                <select id="seasonFolder" class="custom-select" onchange="handleFolderChange()">
+                    <option value="ALL_KVKS">★ ALL KVKS</option>
+                </select>
                 <input type="text" id="playerSearch" class="search-box" placeholder="SEARCH_LORDS..." oninput="renderDisplay()">
                 
-                <div class="view-toggle-container" id="toggleWrapper" style="display: none;">
+                <div class="view-toggle-container" id="toggleWrapper">
                     <div id="pill-bg" class="pill-slider"></div>
-                    <button id="mode-total" class="toggle-btn active" onclick="setMode('total')">TOTAL</button>
+                    <button id="mode-total" class="toggle-btn" onclick="setMode('total')">TOTAL</button>
                     <button id="mode-growth" class="toggle-btn" onclick="setMode('growth')">GROWTH</button>
                 </div>
             </div>
@@ -135,16 +74,12 @@
 </div>
 
 <script>
-    const BASE_PATH = "IData/"; 
-    const POWER_FLOOR = 35000000;
-    const MIN_SHEETS = 2; 
+    const BASE_PATH = "IData/";
     const targetServers = ["167", "509"];
     let weeklyData = {};
     let currentSortMetric = 'highest_power';
-    let fileListData = {};
-    let isAllKvksMode = false;
-    let selectedPlayerId = null;
     let currentViewMode = 'total'; 
+    let selectedPlayerId = null;
 
     const metrics = {
         'highest_power': 'HIGHEST POWER', 'merits': 'MERITS', 'units_killed': 'TOTAL KILLS',
@@ -154,51 +89,17 @@
         'stone_spent': 'STONE SPENT', 'mana_spent': 'MANA SPENT'
     };
 
-    function cleanName(raw) { return raw === "ALL_KVKS" ? "★ ALL KVKS" : raw.replace(/^\d+\s*-\s*/, ''); }
-
-    function updatePillPosition(mode, isSolo = false) {
-        const totalBtn = document.getElementById(isSolo ? 'mode-total-solo' : 'mode-total');
-        const growthBtn = document.getElementById(isSolo ? 'mode-growth-solo' : 'mode-growth');
-        const pill = document.getElementById(isSolo ? 'pill-bg-solo' : 'pill-bg');
-        
-        if (!totalBtn || !pill) return;
-
-        if (mode === 'total') {
-            pill.style.width = `${totalBtn.offsetWidth}px`;
-            pill.style.left = `${totalBtn.offsetLeft}px`;
-        } else {
-            pill.style.width = `${growthBtn.offsetWidth}px`;
-            pill.style.left = `${growthBtn.offsetLeft}px`;
-        }
-    }
-
     function setMode(mode) {
         currentViewMode = mode;
+        const pill = document.getElementById('pill-bg');
+        const btn = document.getElementById(mode === 'total' ? 'mode-total' : 'mode-growth');
+        pill.style.width = btn.offsetWidth + "px";
+        pill.style.left = btn.offsetLeft + "px";
         renderDisplay();
-        setTimeout(() => {
-            updatePillPosition(mode, !!selectedPlayerId);
-        }, 10);
     }
 
     async function init() {
-        createMetricButtons();
-        try {
-            const res = await fetch('data/files.json');
-            fileListData = await res.json();
-            const selector = document.getElementById('seasonFolder');
-            fileListData.iDataFolders.forEach(folder => {
-                const opt = document.createElement('option');
-                opt.value = folder.name; opt.textContent = cleanName(folder.name);
-                selector.appendChild(opt);
-            });
-            selector.value = "ALL_KVKS";
-            handleFolderChange();
-        } catch(e) { console.error("Init failed", e); }
-    }
-
-    function createMetricButtons() {
         const bar = document.getElementById('metricBar');
-        bar.innerHTML = "";
         Object.entries(metrics).forEach(([key, label]) => {
             const btn = document.createElement('button');
             btn.className = `metric-btn ${key === currentSortMetric ? 'active' : ''}`;
@@ -209,221 +110,135 @@
             };
             bar.appendChild(btn);
         });
-    }
 
-    async function handleFolderChange() {
-        const val = document.getElementById('seasonFolder');
-        if (!val.value) return;
-        document.getElementById('loader').style.display = 'flex';
-        weeklyData = {}; 
-        isAllKvksMode = (val.value === 'ALL_KVKS');
-        document.getElementById('toggleWrapper').style.display = isAllKvksMode ? 'flex' : 'none';
-
-        try {
-            if (isAllKvksMode) await loadDynamicAllKvks();
-            else await loadSingleFolder(val.value);
-        } catch (e) { console.error("Load Error:", e); }
-        document.getElementById('loader').style.display = 'none';
-        renderDisplay();
-        if (isAllKvksMode) setTimeout(() => updatePillPosition(currentViewMode), 50);
-    }
-
-    async function loadDynamicAllKvks() {
+        const res = await fetch('data/files.json');
+        const fileListData = await res.json();
         const folders = fileListData.iDataFolders;
-        const latestFolder = folders[folders.length - 1];
-        const latestPath = BASE_PATH + latestFolder.name.replace('KVK', 'KvK') + "/" + latestFolder.files[latestFolder.files.length - 1];
-        const latestResp = await fetch(latestPath);
-        const latestSheetData = parseCSV(await latestResp.text());
-        const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
-        for (const folderMeta of folders) {
-            const fName = folderMeta.name.replace('KVK', 'KvK');
-            const files = folderMeta.files;
-            if (files.length < 2) continue;
-            const [respOld, respNew] = await Promise.all([fetch(BASE_PATH + fName + "/" + files[0]), fetch(BASE_PATH + fName + "/" + files[files.length - 1])]);
-            if (!respOld.ok || !respNew.ok) continue;
-            const [dataOld, dataNew] = [parseCSV(await respOld.text()), parseCSV(await respNew.text())];
+        for (const folder of folders) {
+            const fName = folder.name.replace('KVK', 'KvK');
+            const files = folder.files;
+            const [r1, r2] = await Promise.all([fetch(BASE_PATH+fName+"/"+files[0]), fetch(BASE_PATH+fName+"/"+files[files.length-1])]);
+            const [d1, d2] = [parseCSV(await r1.text()), parseCSV(await r2.text())];
 
-            activeIds.forEach(id => {
-                if (!weeklyData[id]) weeklyData[id] = { starts: [], ends: [], timeline: [], growthTimeline: [], latestStats: latestSheetData[id], sheetCount: 0 };
-                if (dataOld[id] && dataNew[id]) {
-                    let s = { label: files[0].replace('.csv','') }; Object.keys(metrics).forEach(m => s[m] = parseInt(dataOld[id][m]) || 0);
-                    let e = { label: files[files.length - 1].replace('.csv','') }; 
-                    Object.keys(metrics).forEach(m => e[m] = parseInt(dataNew[id][m]) || 0);
-                    let g = { label: e.label }; Object.keys(metrics).forEach(m => g[m] = e[m] - s[m]);
-                    weeklyData[id].starts.push(s); weeklyData[id].ends.push(e); weeklyData[id].growthTimeline.push(g); weeklyData[id].timeline.push(e); 
-                    weeklyData[id].sheetCount++;
-                }
+            Object.keys(d2).forEach(id => {
+                if (!weeklyData[id]) weeklyData[id] = { name: d2[id].name, timeline: [], growth: [] };
+                const endVal = d2[id];
+                const startVal = d1[id] || d2[id]; 
+                
+                let kvkGrowth = { label: fName };
+                let kvkTotal = { label: fName };
+                
+                Object.keys(metrics).forEach(m => {
+                    kvkTotal[m] = parseInt(endVal[m]) || 0;
+                    kvkGrowth[m] = (parseInt(endVal[m]) || 0) - (parseInt(startVal[m]) || 0);
+                });
+                
+                weeklyData[id].timeline.push(kvkTotal);
+                weeklyData[id].growth.push(kvkGrowth);
             });
         }
-    }
-
-    async function loadSingleFolder(folderName) {
-        const folderMeta = fileListData.iDataFolders.find(f => f.name === folderName);
-        const files = folderMeta.files;
-        const pathPrefix = BASE_PATH + folderName.replace('KVK', 'KvK') + "/";
-        const latestResp = await fetch(pathPrefix + files[files.length - 1]);
-        const latestData = parseCSV(await latestResp.text());
-        const activeIds = Object.keys(latestData).filter(id => parseInt(latestData[id].highest_power) >= POWER_FLOOR);
-
-        for (const f of files) {
-            const r = await fetch(pathPrefix + f);
-            const d = parseCSV(await r.text());
-            activeIds.forEach(id => {
-                if (!d[id]) return;
-                if (!weeklyData[id]) weeklyData[id] = { starts: [], ends: [], timeline: [], growthTimeline: [], latestStats: latestData[id], sheetCount: 0 };
-                let e = { label: f.replace('.csv','') };
-                Object.keys(metrics).forEach(m => e[m] = parseInt(d[id][m]) || 0);
-                weeklyData[id].timeline.push(e);
-                weeklyData[id].sheetCount++;
-            });
-        }
+        setMode('total');
+        document.getElementById('loader').style.display = 'none';
     }
 
     function renderDisplay() {
         const grid = document.getElementById('mainGrid');
-        const isGrowth = currentViewMode === 'growth' && isAllKvksMode;
         const query = document.getElementById('playerSearch').value.toLowerCase();
-        
-        document.querySelectorAll('canvas').forEach(c => { const chart = Chart.getChart(c); if(chart) chart.destroy(); });
         grid.innerHTML = "";
+        
+        if (selectedPlayerId) { return renderSoloMode(selectedPlayerId); }
 
-        if (selectedPlayerId && weeklyData[selectedPlayerId]) {
-            document.getElementById('controlsWrapper').style.display = 'none';
-            document.getElementById('navActionContainer').innerHTML = `<button class="exit-btn" onclick="exitSoloMode()">← TERMINATE_VIEW</button>`;
-            renderSoloMode(selectedPlayerId, isGrowth);
-            return;
-        }
-
-        document.getElementById('controlsWrapper').style.display = 'block';
-        document.getElementById('navActionContainer').innerHTML = `<button class="exit-btn" onclick="window.location.href='index.html'">← SYSTEM_RETURN</button>`;
-
-        const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksMode ? 1 : MIN_SHEETS)).sort((a,b) => {
-            const tA = isGrowth ? a.growthTimeline : a.timeline;
-            const tB = isGrowth ? b.growthTimeline : b.timeline;
-            const valA = isGrowth ? Math.max(...tA.map(t => t[currentSortMetric] || 0)) : tA[tA.length - 1][currentSortMetric];
-            const valB = isGrowth ? Math.max(...tB.map(t => t[currentSortMetric] || 0)) : tB[tB.length - 1][currentSortMetric];
-            return (valB || 0) - (valA || 0);
+        const isGrowth = currentViewMode === 'growth';
+        
+        const sorted = Object.entries(weeklyData).filter(([id, data]) => {
+            return !query || data.name.toLowerCase().includes(query) || id.includes(query);
+        }).sort((a, b) => {
+            const dataA = isGrowth ? a[1].growth : a[1].timeline;
+            const dataB = isGrowth ? b[1].growth : b[1].timeline;
+            return (dataB[dataB.length-1][currentSortMetric] || 0) - (dataA[dataA.length-1][currentSortMetric] || 0);
         });
 
         document.getElementById('subjectCount').textContent = `ACTIVE_MEMBERS // ${sorted.length}`;
 
-        sorted.forEach((data, index) => {
-            const lordId = data.latestStats.lord_id || data.latestStats.id;
-            if (query && !data.latestStats.name.toLowerCase().includes(query) && !lordId.toLowerCase().includes(query)) return;
+        sorted.forEach(([id, data], index) => {
+            const activeSet = isGrowth ? data.growth : data.timeline;
+            const lastEntry = activeSet[activeSet.length - 1];
+            const displayVal = lastEntry[currentSortMetric];
             
+            // UNIFIED LABELING: [METRIC] + [TYPE]
+            const labelSuffix = isGrowth ? " IN LAST KVK" : "";
+            const finalLabel = metrics[currentSortMetric] + labelSuffix;
+
             const card = document.createElement('div');
-            card.className = `growth-card ${index < 3 ? 'glow-'+(index+1) : 'glow-purple'}`;
-            card.onclick = () => { selectedPlayerId = lordId; renderDisplay(); };
-            
-            const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-            let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[currentSortMetric] || 0)) : activeTimeline[activeTimeline.length - 1][currentSortMetric];
-
-            let deltaHTML = "";
-            if (!isGrowth) {
-                const delta = isAllKvksMode ? 
-                    (displayVal - (data.ends.length > 1 ? data.ends[data.ends.length - 2][currentSortMetric] : 0)) : 
-                    (displayVal - (data.timeline[0][currentSortMetric] || 0));
-                deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} ${isAllKvksMode ? 'VS LAST KVK' : 'THIS KVK'}</div>`;
-            }
-
-            let displayLabel = metrics[currentSortMetric];
-            if (isGrowth) {
-                displayLabel = currentSortMetric === 'highest_power' ? "HIGHEST POWER GAINED IN A KVK" : `MOST ${metrics[currentSortMetric]} GOTTEN IN A KVK`;
-            }
-
+            card.className = "growth-card glow-purple";
+            card.onclick = () => { selectedPlayerId = id; renderDisplay(); };
             card.innerHTML = `
-                <div class="rank-banner ${index < 3 ? 'rank-'+(index+1)+'-banner' : 'rank-std-banner'}">#${index+1}</div>
-                <h3 style="margin:0; font-size:1.6rem; color:var(--text-title);">${data.latestStats.name}</h3>
-                <div style="font-size:0.65rem; color:var(--text-dim); font-weight:900; margin-top:4px;">ID: ${lordId}</div>
+                <div class="rank-banner">#${index+1}</div>
+                <h3 style="margin:0; color:var(--text-title);">${data.name}</h3>
+                <div style="font-size:0.6rem; color:var(--text-dim);">ID: ${id}</div>
                 <div style="margin:20px 0;">
-                    <div class="stat-label">${displayLabel}</div>
+                    <div class="stat-label" style="color:var(--accent-purple);">${finalLabel}</div>
                     <div class="stat-value" style="font-size:1.4rem;">${displayVal.toLocaleString()}</div>
-                    ${deltaHTML}
                 </div>
-                <div class="chart-container"><canvas id="chart-${lordId}"></canvas></div>
+                <div class="chart-container"><canvas id="chart-${id}"></canvas></div>
             `;
             grid.appendChild(card);
-            createChart(`chart-${lordId}`, activeTimeline, currentSortMetric, false);
+            
+            new Chart(document.getElementById(`chart-${id}`), {
+                type: 'line',
+                data: {
+                    labels: activeSet.map(t => t.label),
+                    datasets: [{ data: activeSet.map(t => t[currentSortMetric]), borderColor: '#9333ea', tension: 0.3, fill: false, pointRadius: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+            });
         });
     }
 
-    function renderSoloMode(id, isGrowth) {
+    function renderSoloMode(id) {
         const grid = document.getElementById('mainGrid');
         const data = weeklyData[id];
-        
+        const isGrowth = currentViewMode === 'growth';
+
         const header = document.createElement('div');
         header.className = 'solo-header';
         header.innerHTML = `
-            <div class="stat-label" style="letter-spacing: 4px; color: var(--accent-purple);">MEMBER_ANALYSIS</div>
-            <h2>${data.latestStats.name}</h2>
-            <div class="stat-label" style="font-size: 0.8rem;">ID: ${id}</div>
-            
-            <div class="view-toggle-container" style="margin-top: 30px; display: ${isAllKvksMode ? 'flex' : 'none'};">
-                <div id="pill-bg-solo" class="pill-slider"></div>
-                <button id="mode-total-solo" class="toggle-btn ${currentViewMode === 'total' ? 'active' : ''}" onclick="setMode('total')">TOTAL</button>
-                <button id="mode-growth-solo" class="toggle-btn ${currentViewMode === 'growth' ? 'active' : ''}" onclick="setMode('growth')">GROWTH</button>
-            </div>
+            <button class="exit-btn" onclick="selectedPlayerId=null; renderDisplay();">← RETURN_TO_GRID</button>
+            <h2>${data.name}</h2>
+            <div class="stat-label">ID: ${id}</div>
         `;
         grid.appendChild(header);
 
         Object.keys(metrics).forEach(mKey => {
-            const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-            let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[mKey] || 0)) : activeTimeline[activeTimeline.length - 1][mKey] || 0;
-
-            let deltaHTML = "";
-            if (!isGrowth) {
-                const delta = isAllKvksMode ? (displayVal - (data.ends.length > 1 ? data.ends[data.ends.length - 2][mKey] : 0)) : (displayVal - (data.timeline[0][mKey] || 0));
-                deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} VS LAST KVK</div>`;
-            }
-
-            let displayLabel = metrics[mKey];
-            if (isGrowth) {
-                displayLabel = mKey === 'highest_power' ? "HIGHEST POWER GAINED IN A KVK" : `MOST ${metrics[mKey]} GOTTEN IN A KVK`;
-            }
+            const activeSet = isGrowth ? data.growth : data.timeline;
+            const lastVal = activeSet[activeSet.length - 1][mKey];
+            const labelSuffix = isGrowth ? " IN LAST KVK" : "";
+            const finalLabel = metrics[mKey] + labelSuffix;
 
             const mini = document.createElement('div');
-            mini.className = "growth-card glow-purple"; mini.style.cursor = "default";
+            mini.className = "growth-card glow-purple";
+            mini.style.cursor = "default";
             mini.innerHTML = `
-                <div class="stat-label">${displayLabel}</div>
-                <div class="stat-value" style="font-size:1.8rem;">${displayVal.toLocaleString()}</div>
-                ${deltaHTML}
-                <div class="chart-container" style="height:180px;"><canvas id="solo-${mKey}"></canvas></div>
+                <div class="stat-label">${finalLabel}</div>
+                <div class="stat-value" style="font-size:1.8rem;">${lastVal.toLocaleString()}</div>
+                <div class="chart-container"><canvas id="solo-${mKey}"></canvas></div>
             `;
             grid.appendChild(mini);
-            createChart(`solo-${mKey}`, activeTimeline, mKey, true);
-        });
-        window.scrollTo(0,0);
-        setTimeout(() => updatePillPosition(currentViewMode, true), 10);
-    }
-
-    function exitSoloMode() { selectedPlayerId = null; renderDisplay(); }
-
-    function createChart(canvasId, timeline, metricKey, isSolo) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: timeline.map(t => t.label),
-                datasets: [{ 
-                    data: timeline.map(t => t[metricKey]), 
-                    borderColor: '#9333ea', pointRadius: isSolo ? 5 : 3, pointHoverRadius: 8, pointHitRadius: 15, tension: 0.3, fill: false, borderWidth: 2 
-                }]
-            },
-            options: { 
-                responsive: true, maintainAspectRatio: false, 
-                plugins: { legend: { display: false } }, 
-                scales: { 
-                    x: { ticks: { color: '#9d8ba1', font: { size: isSolo ? 10 : 8, weight: 'bold' }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
-                    y: { display: false } 
-                } 
-            }
+            
+            new Chart(document.getElementById(`solo-${mKey}`), {
+                type: 'line',
+                data: {
+                    labels: activeSet.map(t => t.label),
+                    datasets: [{ data: activeSet.map(t => t[mKey]), borderColor: '#9333ea', tension: 0.3, pointRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false } } }
+            });
         });
     }
 
     function parseCSV(text) {
         const lines = text.split(/\r?\n/).filter(l => l.trim());
-        if (lines.length < 2) return {};
         const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         const result = {};
         lines.slice(1).forEach(line => {
