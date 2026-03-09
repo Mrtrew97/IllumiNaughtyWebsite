@@ -88,7 +88,6 @@
             justify-content: center;
         }
 
-        /* Fixed Dropdown Styling to prevent "Bright Flash" */
         .custom-select-wrapper select { 
             appearance: none;
             -webkit-appearance: none;
@@ -112,7 +111,6 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* Forces the dropdown list itself to stay dark */
         .custom-select-wrapper select option {
             background-color: #0f0518; 
             color: white;
@@ -325,11 +323,14 @@
     };
     let fileDataCache = {}; 
     let masterAllianceMap = {}; 
+    let fileListData = {};
+
     function parseToNum(val) {
         if (!val || val === '-') return 0;
         const clean = val.toString().replace(/[^0-9]/g, '');
         return parseInt(clean, 10) || 0;
     }
+
     function parseCSV(text) {
         const lines = text.split(/\r?\n/).filter(l => l.trim());
         if (lines.length === 0) return [];
@@ -341,26 +342,28 @@
             return row;
         });
     }
+
     function dateFromFilename(name) {
         const parts = name.replace('.csv', '').split('-');
         if (parts.length !== 3) return new Date(0);
         return new Date(parts[2], parts[1] - 1, parts[0]);
     }
+
     async function scanFiles() {
         showLoader(true);
         try {
-            const response = await fetch('data/');
-            const html = await response.text();
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-            const links = Array.from(tempDiv.querySelectorAll('a'));
-            let foundFiles = links.map(link => link.getAttribute('href').split('/').pop()).filter(name => name.endsWith('.csv'));
+            const response = await fetch('data/files.json');
+            if (!response.ok) throw new Error('Could not load files.json');
+            
+            fileListData = await response.json();
+            const foundFiles = fileListData.mainDataFiles;
+
             if (foundFiles.length === 0) return;
-            const fileObjects = foundFiles.map(name => ({ name, date: dateFromFilename(name) }));
-            fileObjects.sort((a, b) => a.date - b.date);
-            const oldestFile = fileObjects[0].name;
-            const masterRes = await fetch(`data/${oldestFile}`);
+
+            const oldestFile = foundFiles[foundFiles.length-1];
+            const masterRes = await fetch(oldestFile);
             const masterData = parseCSV(await masterRes.text());
+            
             masterData.forEach(row => {
                 const sID = row.home_server;
                 const tag = row.alliance_tag;
@@ -368,19 +371,25 @@
                     masterAllianceMap[sID] = tag;
                 }
             });
+
             document.getElementById('namingSourceLabel').innerText = `Names: ${oldestFile.replace('.csv','')}`;
+
             const sSelect = document.getElementById('dateStart');
             const eSelect = document.getElementById('dateEnd');
-            fileObjects.forEach(obj => {
+            
+            foundFiles.forEach(file => {
                 const opt = document.createElement('option');
-                opt.value = obj.name; opt.textContent = obj.name.replace('.csv','');
+                opt.value = file;
+                opt.textContent = file.replace('.csv','').replace('data/','');
                 sSelect.appendChild(opt.cloneNode(true));
                 eSelect.appendChild(opt);
             });
+
             await handleDateChange();
         } catch (e) { console.error(e); }
         showLoader(false);
     }
+
     function setupToggleLogic(selectId) {
         const select = document.getElementById(selectId);
         select.addEventListener('mousedown', function(e) {
@@ -397,19 +406,21 @@
             }
         });
     }
+
     async function handleDateChange() {
         const startFile = document.getElementById('dateStart').value;
         const endFile = document.getElementById('dateEnd').value;
         if (!fileDataCache[startFile]) {
-            const resS = await fetch(`data/${startFile}`);
+            const resS = await fetch(startFile);
             fileDataCache[startFile] = parseCSV(await resS.text());
         }
         if (!fileDataCache[endFile]) {
-            const resE = await fetch(`data/${endFile}`);
+            const resE = await fetch(endFile);
             fileDataCache[endFile] = parseCSV(await resE.text());
         }
         updateAllianceLists();
     }
+
     function updateAllianceLists() {
         const sortedSIDs = Object.keys(masterAllianceMap).sort((a,b) => a - b);
         ['allianceStart', 'allianceEnd'].forEach(id => {
@@ -427,6 +438,7 @@
         });
         compareData();
     }
+
     function calculateHybrid(selectedSIDs, startData, endData) {
         const startMap = new Map(startData.filter(r => selectedSIDs.includes(r.home_server)).map(p => [p.lord_id, p]));
         const endMap = new Map(endData.filter(r => selectedSIDs.includes(r.home_server)).map(p => [p.lord_id, p]));
@@ -446,6 +458,7 @@
         });
         return results;
     }
+
     function compareData() {
         const sF = document.getElementById('dateStart').value;
         const eF = document.getElementById('dateEnd').value;
@@ -476,12 +489,15 @@
                 </div>`;
         }).join('');
     }
+
     function showLoader(show) { document.getElementById('globalLoader').style.display = show ? 'flex' : 'none'; }
+    
     function init() {
         setupToggleLogic('allianceStart');
         setupToggleLogic('allianceEnd');
         scanFiles();
     }
+
     window.onload = init;
 </script>
 </body>
