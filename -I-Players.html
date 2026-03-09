@@ -128,8 +128,8 @@
     async function loadDynamicAllKvks() {
         const latestFolder = fileListData.iDataFolders[fileListData.iDataFolders.length - 1];
         const latestFiles = latestFolder.files;
-        // Construct path carefully
-        const latestPath = BASE_PATH + encodeURIComponent(latestFolder.name) + "/" + latestFiles[latestFiles.length - 1];
+        // Fix: Removed encodeURIComponent for GitHub path compatibility
+        const latestPath = BASE_PATH + latestFolder.name + "/" + latestFiles[latestFiles.length - 1];
         
         const latestResp = await fetch(latestPath);
         if (!latestResp.ok) return;
@@ -141,7 +141,7 @@
             const files = folderMeta.files;
             if (files.length < 2) continue;
 
-            const folderURL = BASE_PATH + encodeURIComponent(folderName) + "/";
+            const folderURL = BASE_PATH + folderName + "/";
             const firstFile = folderURL + files[0];
             const lastFile = folderURL + files[files.length - 1];
 
@@ -178,7 +178,7 @@
         if (!folderMeta) return;
 
         const files = folderMeta.files;
-        const pathPrefix = BASE_PATH + encodeURIComponent(folderName) + "/";
+        const pathPrefix = BASE_PATH + folderName + "/";
         
         const latestResp = await fetch(pathPrefix + files[files.length - 1]);
         if (!latestResp.ok) return;
