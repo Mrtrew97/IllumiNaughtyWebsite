@@ -78,6 +78,12 @@
             align-items: center;
             justify-content: center;
         }
+
+        .chart-container {
+            height: 150px;
+            margin-top: 15px;
+            position: relative;
+        }
     </style>
 </head>
 <body>
@@ -317,7 +323,7 @@
                 <div class="chart-container"><canvas id="chart-${lordId}"></canvas></div>
             `;
             grid.appendChild(card);
-            createChart(`chart-${lordId}`, data, currentSortMetric);
+            createChart(`chart-${lordId}`, data, currentSortMetric, false);
         });
     }
 
@@ -353,28 +359,53 @@
                 <div class="${delta >= 0 ? 'positive' : 'negative'}" style="font-weight:900; font-size:0.75rem; margin-top:5px;">
                     ${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()}
                 </div>
-                <div style="height:120px; margin-top:15px;"><canvas id="solo-${mKey}"></canvas></div>
+                <div class="chart-container" style="height:200px;"><canvas id="solo-${mKey}"></canvas></div>
             `;
             grid.appendChild(miniCard);
-            createChart(`solo-${mKey}`, data, mKey);
+            createChart(`solo-${mKey}`, data, mKey, true);
         });
         window.scrollTo(0,0);
     }
 
     function exitSoloMode() { selectedPlayerId = null; renderDisplay(); }
 
-    function createChart(canvasId, data, metricKey) {
+    function createChart(canvasId, data, metricKey, isSolo) {
         const el = document.getElementById(canvasId);
         if(!el) return;
         const ctx = el.getContext('2d');
         let graphTimeline = (isAllKvksMode) ? data.ends : data.timeline;
+        
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: (graphTimeline || []).map(t => t.label),
-                datasets: [{ data: (graphTimeline || []).map(t => t[metricKey]), borderColor: '#9333ea', pointRadius: 2, tension: 0.3, fill: false, borderWidth: 2 }]
+                datasets: [{ 
+                    data: (graphTimeline || []).map(t => t[metricKey]), 
+                    borderColor: '#9333ea', 
+                    pointRadius: isSolo ? 4 : 2, 
+                    tension: 0.3, 
+                    fill: false, 
+                    borderWidth: 2 
+                }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { display: false }, grid: { display: false } }, y: { display: false } } }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } }, 
+                scales: { 
+                    x: { 
+                        display: true,
+                        ticks: { 
+                            color: '#9d8ba1', 
+                            font: { size: isSolo ? 10 : 8, weight: 'bold' },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }, 
+                        grid: { display: false } 
+                    }, 
+                    y: { display: false } 
+                } 
+            }
         });
     }
 
