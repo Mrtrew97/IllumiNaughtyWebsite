@@ -27,17 +27,24 @@
             overflow: hidden;
             background: rgba(0, 0, 0, 0.4);
             box-shadow: 0 0 10px rgba(147, 51, 234, 0.2);
+            height: 32px;
         }
         .toggle-btn {
             background: transparent;
             border: none;
             color: var(--text-dim);
-            padding: 8px 14px;
+            padding: 0 15px;
+            height: 100%;
+            min-width: 85px;
             font-size: 0.6rem;
             font-weight: 900;
             cursor: pointer;
             letter-spacing: 2px;
             transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
         }
         .toggle-btn.active {
             background: var(--accent-purple);
@@ -143,8 +150,9 @@
 
     function setMode(mode) {
         currentViewMode = mode;
-        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`mode-${mode}`).classList.add('active');
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.id.includes(mode));
+        });
         renderDisplay();
     }
 
@@ -318,7 +326,6 @@
         const grid = document.getElementById('mainGrid');
         const data = weeklyData[id];
         
-        // CENTERED VERTICAL HEADER
         const header = document.createElement('div');
         header.className = 'solo-header';
         header.innerHTML = `
