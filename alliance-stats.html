@@ -6,26 +6,25 @@
     <title>Alliance Intelligence // CORE_V2</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* CORE LAYERING FIX */
+        /* CORE LAYERING & SPACING FIX */
         .app-container {
             position: relative;
             z-index: 1;
         }
-        /* Spacing Fix: Increased buffer between controls and cards */
+
         .sticky-wrapper {
             position: sticky; 
             top: 0; 
-            z-index: 999;
-            /* 40px bottom padding ensures cards don't touch the bar on hover lift */
-            padding: 10px 0 40px 0;
+            z-index: 999; 
+            padding: 10px 0 20px 0;
             backdrop-filter: blur(12px) saturate(150%);
             -webkit-backdrop-filter: blur(12px) saturate(150%);
-            background: rgba(3, 0, 5, 0.85); 
-            border-bottom: 1px solid rgba(147, 51, 234, 0.05);
+            background: rgba(3, 0, 5, 0.9); 
+            border-bottom: 1px solid rgba(147, 51, 234, 0.2);
         }
 
         .primary-controls {
-            background: rgba(147, 51, 234, 0.03); 
+            background: rgba(147, 51, 234, 0.05); 
             padding: 10px 15px; 
             border-radius: 16px; 
             border: 1px solid var(--border-color); 
@@ -33,25 +32,28 @@
             flex-wrap: wrap; 
             gap: 10px; 
             align-items: center;
-            /* 20px bottom margin for internal spacing within the sticky area */
             margin-bottom: 20px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
         }
 
-        /* Ensure cards stay below the header even when hovering */
+        /* GRID OFFSET: Ensures cards start 40px below the header */
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            padding: 40px 0; 
+        }
+
         .growth-card {
             position: relative;
             z-index: 10;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
         }
 
         .growth-card:hover {
-            /* Keep hover z-index lower than the sticky-wrapper (999) */
             z-index: 11; 
-            transform: translateY(-5px);
+            transform: translateY(-8px);
         }
-
-        
 
         .metric-bar { 
             display: flex; 
@@ -65,7 +67,6 @@
             padding-top: 0;
         }
 
-        /* Prevent scrollbar from shifting layout */
         html {
             overflow-y: scroll;
         }
@@ -78,9 +79,9 @@
 </div>
 
 <div class="app-container">
-    <div class="header-nav" id="topNav">
+    <div class="header-nav" id="topNav" style="position: relative; z-index: 1000;">
         <a href="index.html" class="exit-btn">← SYSTEM_RETURN</a>
-        <div id="rowCountDisplay" style="font-weight:900; color: var(--accent-purple); font-size: 0.75rem;">ACTIVE_MEMBERS: 0</div>
+        <div id="rowCountDisplay" style="font-weight:900; color: var(--accent-purple); font-size: 0.75rem;">ACTIVE_SUBJECTS: 0</div>
     </div>
 
     <div id="fleetView">
@@ -105,7 +106,7 @@
                         <option value="all">All Servers</option>
                     </select>
                 </div>
-                <input type="text" id="playerSearch" class="search-box" placeholder="SCAN_MEMBER_DATABASE..." oninput="filterAndRender()">
+                <input type="text" id="playerSearch" class="search-box" placeholder="SCAN_SUBJECT_DATABASE..." oninput="filterAndRender()">
             </div>
             <div class="metric-bar" id="metricBar"></div>
         </div>
@@ -251,7 +252,7 @@
         currentTableData.forEach((row, idx) => row._globalRank = idx + 1);
         let displayData = currentTableData.filter(row => (row.name || '').toLowerCase().includes(query) || (row.lord_id || '').toLowerCase().includes(query));
 
-        document.getElementById('rowCountDisplay').innerText = `ACTIVE_MEMBERS: ${displayData.length}`;
+        document.getElementById('rowCountDisplay').innerText = `ACTIVE_SUBJECTS: ${displayData.length}`;
         const container = document.getElementById('mainGrid');
         container.innerHTML = ""; 
 
