@@ -45,6 +45,7 @@
     let weeklyData = {};
     let currentSortMetric = 'highest_power';
     let availableFolders = [];
+    let fileListData = {};
     let isAllKvksMode = false;
     let selectedPlayerId = null;
 
@@ -78,26 +79,20 @@
     async function init() {
         createMetricButtons();
         try {
-            const res = await fetch(BASE_PATH);
-            const html = await res.text();
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
+            const res = await fetch('data/files.json');
+            if (!res.ok) throw new Error('Could not load files.json');
             
-            availableFolders = Array.from(temp.querySelectorAll('a'))
-                .map(l => decodeURIComponent(l.getAttribute('href')).replace(/\/$/, '').split('/').pop())
-                .filter(n => n && n !== "-I- Data" && !n.includes('.') && n !== '..' && n !== 'All KVKS');
-
-            availableFolders.sort();
+            fileListData = await res.json();
+            availableFolders = fileListData.iDataFolders.map(folder => folder.name);
 
             const selector = document.getElementById('seasonFolder');
-            availableFolders.forEach(f => {
+            fileListData.iDataFolders.forEach(folder => {
                 const opt = document.createElement('option');
-                opt.value = f; 
-                opt.textContent = cleanName(f);
+                opt.value = folder.name;
+                opt.textContent = cleanName(folder.name);
                 selector.appendChild(opt);
             });
 
-            // SET DEFAULT TO ALL KVKS AND TRIGGER LOAD
             selector.value = "ALL_KVKS";
             handleFolderChange();
 
@@ -138,46 +133,41 @@
     }
 
     async function loadDynamicAllKvks() {
-        let folderMeta = [];
-        for (const folder of availableFolders) {
-            try {
-                const res = await fetch(`${BASE_PATH}${folder}/`);
-                const html = await res.text();
-                const div = document.createElement('div'); div.innerHTML = html;
-                const files = Array.from(div.querySelectorAll('a'))
-                    .map(l => l.getAttribute('href').split('/').pop())
-                    .filter(n => n.endsWith('.csv'))
-                    .sort((a,b) => parseDate(a) - parseDate(b));
-                if (files.length >= 2) folderMeta.push({ name: folder, files, startDate: parseDate(files[0]) });
-            } catch (err) { console.warn(`Skipping folder ${folder}`, err); }
-        }
-        folderMeta.sort((a, b) => a.startDate - b.startDate);
-        
-        if (folderMeta.length === 0) return;
-
-        const lastMeta = folderMeta[folderMeta.length - 1];
-        const latestSheetData = parseCSV(await (await fetch(`${BASE_PATH}${lastMeta.name}/${lastMeta.files[lastMeta.files.length-1]}`)).text());
+        const latestFolder = fileListData.iDataFolders[fileListData.iDataFolders.length - 1];
+        const latestFiles = latestFolder.files;
+        const latestPath = `${BASE_PATH}${latestFolder.name}/${latestFiles[latestFiles.length - 1]}`;
+        const latestSheetData = parseCSV(await (await fetch(latestPath)).text());
         const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
-        for (const meta of folderMeta) {
-            const path = `${BASE_PATH}${meta.name}/`;
+        for (const folderMeta of fileListData.iDataFolders) {
+            const folderName = folderMeta.name;
+            const files = folderMeta.files;
+            
+            if (files.length < 2) continue;
+
+            const firstFile = `${BASE_PATH}${folderName}/${files[0]}`;
+            const lastFile = `${BASE_PATH}${folderName}/${files[files.length - 1]}`;
+
             const [textOld, textNew] = await Promise.all([
-                fetch(path + meta.files[0]).then(r => r.text()),
-                fetch(path + meta.files[meta.files.length - 1]).then(r => r.text())
+                fetch(firstFile).then(r => r.text()),
+                fetch(lastFile).then(r => r.text())
             ]);
+            
             const dataOld = parseCSV(textOld);
             const dataNew = parseCSV(textNew);
 
             activeIds.forEach(id => {
-                if (!weeklyData[id]) { weeklyData[id] = { starts: [], ends: [], timeline: [], latestStats: latestSheetData[id], sheetCount: 0 }; }
+                if (!weeklyData[id]) { 
+                    weeklyData[id] = { starts: [], ends: [], timeline: [], latestStats: latestSheetData[id], sheetCount: 0 }; 
+                }
                 if (dataOld[id]) {
-                    let e = { label: meta.files[0].replace('.csv','') };
+                    let e = { label: files[0].replace('.csv','') };
                     Object.keys(metrics).forEach(m => e[m] = parseInt(dataOld[id][m]) || 0);
                     weeklyData[id].starts.push(e);
                     weeklyData[id].sheetCount++;
                 }
                 if (dataNew[id]) {
-                    let e = { label: meta.files[meta.files.length - 1].replace('.csv','') };
+                    let e = { label: files[files.length - 1].replace('.csv','') };
                     Object.keys(metrics).forEach(m => e[m] = parseInt(dataNew[id][m]) || 0);
                     weeklyData[id].ends.push(e);
                     weeklyData[id].timeline.push(e);
@@ -187,23 +177,23 @@
         }
     }
 
-    async function loadSingleFolder(folder) {
-        const path = `${BASE_PATH}${folder}/`;
-        const res = await fetch(path);
-        const html = await res.text();
-        const div = document.createElement('div'); div.innerHTML = html;
-        const files = Array.from(div.querySelectorAll('a'))
-            .map(l => l.getAttribute('href').split('/').pop())
-            .filter(n => n.endsWith('.csv')).sort((a,b) => parseDate(a) - parseDate(b));
+    async function loadSingleFolder(folderName) {
+        const folderMeta = fileListData.iDataFolders.find(f => f.name === folderName);
+        if (!folderMeta) return;
 
-        const latestData = parseCSV(await (await fetch(path + files[files.length-1])).text());
+        const files = folderMeta.files;
+        const path = `${BASE_PATH}${folderName}/`;
+        
+        const latestData = parseCSV(await (await fetch(path + files[files.length - 1])).text());
         const activeIds = Object.keys(latestData).filter(id => parseInt(latestData[id].highest_power) >= POWER_FLOOR);
 
         for (const f of files) {
             const d = parseCSV(await (await fetch(path + f)).text());
             activeIds.forEach(id => {
                 if (!d[id]) return;
-                if (!weeklyData[id]) { weeklyData[id] = { starts: [], ends: [], timeline: [], latestStats: latestData[id], sheetCount: 0 }; }
+                if (!weeklyData[id]) { 
+                    weeklyData[id] = { starts: [], ends: [], timeline: [], latestStats: latestData[id], sheetCount: 0 }; 
+                }
                 let e = { label: f.replace('.csv','') };
                 Object.keys(metrics).forEach(m => e[m] = parseInt(d[id][m]) || 0);
                 weeklyData[id].timeline.push(e);
@@ -384,7 +374,8 @@
         const result = {};
         lines.slice(1).forEach(line => {
             const cells = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-            const row = {}; headers.forEach((h, i) => row[h] = cells[i]);
+            const row = {}; 
+            headers.forEach((h, i) => row[h] = cells[i]);
             if (targetServers.includes(row.home_server || row.server)) result[row.lord_id || row.id] = row;
         });
         return result;
