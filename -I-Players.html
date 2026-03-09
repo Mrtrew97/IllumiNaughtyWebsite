@@ -38,9 +38,7 @@
 </div>
 
 <script>
-    // THE CORRECT LINE
     const BASE_PATH = "IData/"; 
-    
     const POWER_FLOOR = 35000000;
     const MIN_SHEETS = 2; 
     const targetServers = ["167", "509"];
@@ -130,9 +128,12 @@
     async function loadDynamicAllKvks() {
         const latestFolder = fileListData.iDataFolders[fileListData.iDataFolders.length - 1];
         const latestFiles = latestFolder.files;
-        const latestPath = `${BASE_PATH}${encodeURIComponent(latestFolder.name)}/${latestFiles[latestFiles.length - 1]}`;
+        // Construct path carefully
+        const latestPath = BASE_PATH + encodeURIComponent(latestFolder.name) + "/" + latestFiles[latestFiles.length - 1];
         
-        const latestSheetData = parseCSV(await (await fetch(latestPath)).text());
+        const latestResp = await fetch(latestPath);
+        if (!latestResp.ok) return;
+        const latestSheetData = parseCSV(await latestResp.text());
         const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
         for (const folderMeta of fileListData.iDataFolders) {
@@ -140,7 +141,7 @@
             const files = folderMeta.files;
             if (files.length < 2) continue;
 
-            const folderURL = `${BASE_PATH}${encodeURIComponent(folderName)}/`;
+            const folderURL = BASE_PATH + encodeURIComponent(folderName) + "/";
             const firstFile = folderURL + files[0];
             const lastFile = folderURL + files[files.length - 1];
 
@@ -177,9 +178,10 @@
         if (!folderMeta) return;
 
         const files = folderMeta.files;
-        const pathPrefix = `${BASE_PATH}${encodeURIComponent(folderName)}/`;
+        const pathPrefix = BASE_PATH + encodeURIComponent(folderName) + "/";
         
         const latestResp = await fetch(pathPrefix + files[files.length - 1]);
+        if (!latestResp.ok) return;
         const latestData = parseCSV(await latestResp.text());
         const activeIds = Object.keys(latestData).filter(id => parseInt(latestData[id].highest_power) >= POWER_FLOOR);
 
