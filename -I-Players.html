@@ -18,7 +18,7 @@
             display: flex; flex-wrap: wrap; gap: 15px; align-items: center; margin-bottom: 20px;
         }
 
-        /* MINIMALIST PILL SWITCH */
+        /* UNIFIED PILL SWITCH STYLING */
         .view-toggle-container {
             display: flex; 
             align-items: center; 
@@ -94,7 +94,7 @@
             text-transform: uppercase;
         }
         .chart-container { height: 160px; margin-top: 15px; }
-        .delta-text { font-weight: 900; font-size: 0.75rem; margin-top: 4px; }
+        .delta-text { font-weight: 900; font-size: 0.75rem; margin-top: 4px; letter-spacing: 1px; }
         .positive { color: #10b981; }
         .negative { color: #ef4444; }
     </style>
@@ -301,11 +301,8 @@
         const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksMode ? 1 : MIN_SHEETS)).sort((a,b) => {
             const tA = isGrowth ? a.growthTimeline : a.timeline;
             const tB = isGrowth ? b.growthTimeline : b.timeline;
-            
-            // Peak logic for sorting
             const valA = isGrowth ? Math.max(...tA.map(t => t[currentSortMetric] || 0)) : tA[tA.length - 1][currentSortMetric];
             const valB = isGrowth ? Math.max(...tB.map(t => t[currentSortMetric] || 0)) : tB[tB.length - 1][currentSortMetric];
-            
             return (valB || 0) - (valA || 0);
         });
 
@@ -320,30 +317,19 @@
             card.onclick = () => { selectedPlayerId = lordId; renderDisplay(); };
             
             const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-            
-            let displayVal;
-            if (isGrowth) {
-                displayVal = Math.max(...activeTimeline.map(t => t[currentSortMetric] || 0));
-            } else {
-                displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric] || 0;
-            }
+            let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[currentSortMetric] || 0)) : activeTimeline[activeTimeline.length - 1][currentSortMetric];
 
             let deltaHTML = "";
             if (!isGrowth) {
                 const delta = isAllKvksMode ? 
                     (displayVal - (data.ends.length > 1 ? data.ends[data.ends.length - 2][currentSortMetric] : 0)) : 
                     (displayVal - (data.timeline[0][currentSortMetric] || 0));
-                deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} ${isAllKvksMode ? 'vs last KVK' : 'this KVK'}</div>`;
+                deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} ${isAllKvksMode ? 'VS LAST KVK' : 'THIS KVK'}</div>`;
             }
 
-            // DYNAMIC LABEL LOGIC
             let displayLabel = metrics[currentSortMetric];
             if (isGrowth) {
-                if (currentSortMetric === 'highest_power') {
-                    displayLabel = "HIGHEST POWER GAINED IN A KVK";
-                } else {
-                    displayLabel = `MOST ${metrics[currentSortMetric]} GOTTEN IN A KVK`;
-                }
+                displayLabel = currentSortMetric === 'highest_power' ? "HIGHEST POWER GAINED IN A KVK" : `MOST ${metrics[currentSortMetric]} GOTTEN IN A KVK`;
             }
 
             card.innerHTML = `
@@ -351,8 +337,8 @@
                 <h3 style="margin:0; font-size:1.6rem; color:var(--text-title);">${data.latestStats.name}</h3>
                 <div style="font-size:0.65rem; color:var(--text-dim); font-weight:900; margin-top:4px;">ID: ${lordId}</div>
                 <div style="margin:20px 0;">
-                    <div class="stat-value" style="font-size:1.4rem;">${displayVal.toLocaleString()}</div>
                     <div class="stat-label">${displayLabel}</div>
+                    <div class="stat-value" style="font-size:1.4rem;">${displayVal.toLocaleString()}</div>
                     ${deltaHTML}
                 </div>
                 <div class="chart-container"><canvas id="chart-${lordId}"></canvas></div>
@@ -383,28 +369,17 @@
 
         Object.keys(metrics).forEach(mKey => {
             const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-            
-            let displayVal;
-            if (isGrowth) {
-                displayVal = Math.max(...activeTimeline.map(t => t[mKey] || 0));
-            } else {
-                displayVal = activeTimeline[activeTimeline.length - 1][mKey] || 0;
-            }
+            let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[mKey] || 0)) : activeTimeline[activeTimeline.length - 1][mKey] || 0;
 
             let deltaHTML = "";
             if (!isGrowth) {
                 const delta = isAllKvksMode ? (displayVal - (data.ends.length > 1 ? data.ends[data.ends.length - 2][mKey] : 0)) : (displayVal - (data.timeline[0][mKey] || 0));
-                deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()}</div>`;
+                deltaHTML = `<div class="delta-text ${delta >= 0 ? 'positive' : 'negative'}">${delta >= 0 ? '▲' : '▼'} ${Math.abs(delta).toLocaleString()} VS LAST KVK</div>`;
             }
 
-            // DYNAMIC SOLO LABEL LOGIC
             let displayLabel = metrics[mKey];
             if (isGrowth) {
-                if (mKey === 'highest_power') {
-                    displayLabel = "HIGHEST POWER GAINED IN A KVK";
-                } else {
-                    displayLabel = `MOST ${metrics[mKey]} GOTTEN IN A KVK`;
-                }
+                displayLabel = mKey === 'highest_power' ? "HIGHEST POWER GAINED IN A KVK" : `MOST ${metrics[mKey]} GOTTEN IN A KVK`;
             }
 
             const mini = document.createElement('div');
@@ -432,13 +407,7 @@
                 labels: timeline.map(t => t.label),
                 datasets: [{ 
                     data: timeline.map(t => t[metricKey]), 
-                    borderColor: '#9333ea', 
-                    pointRadius: isSolo ? 5 : 3,
-                    pointHoverRadius: 8,
-                    pointHitRadius: 15,
-                    tension: 0.3, 
-                    fill: false, 
-                    borderWidth: 2 
+                    borderColor: '#9333ea', pointRadius: isSolo ? 5 : 3, pointHoverRadius: 8, pointHitRadius: 15, tension: 0.3, fill: false, borderWidth: 2 
                 }]
             },
             options: { 
