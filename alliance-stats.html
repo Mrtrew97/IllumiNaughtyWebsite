@@ -17,25 +17,27 @@
             top: 0; 
             z-index: 999; 
             padding: 10px 0 20px 0;
+            /* REMOVED: background and border-bottom */
+            /* KEPT: Blur effect for a floating feel */
             backdrop-filter: blur(12px) saturate(150%);
             -webkit-backdrop-filter: blur(12px) saturate(150%);
-            background: rgba(3, 0, 5, 0.9); 
         }
 
         .primary-controls {
-            background: rgba(147, 51, 234, 0.05); 
+            /* Increased opacity slightly to ensure readability over cards */
+            background: rgba(15, 2, 25, 0.7); 
             padding: 10px 15px; 
             border-radius: 16px; 
-            border: 1px solid var(--border-color); 
+            border: 1px solid rgba(147, 51, 234, 0.3); 
             display: flex; 
             flex-wrap: wrap; 
             gap: 10px; 
             align-items: center;
             margin-bottom: 20px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
-        /* GRID OFFSET: Ensures cards start 40px below the header */
+        /* GRID OFFSET */
         .player-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
