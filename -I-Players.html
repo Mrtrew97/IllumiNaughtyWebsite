@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Intelligence Core // DRILLDOWN_V8.4</title>
+<title>Intelligence Core // DRILLDOWN_V8.3</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -57,6 +57,9 @@ z-index: 1; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
 .solo-controls-row { display: flex; align-items: center; gap: 15px; justify-content: center; }
 
 .chart-container { height: 160px; margin-top: 15px; }
+.delta-text { font-weight: 900; font-size: 0.75rem; margin-top: 4px; letter-spacing: 1px; }
+.positive { color: #10b981; }
+.negative { color: #ef4444; }
 </style>
 </head>
 <body>
@@ -102,6 +105,7 @@ z-index: 1; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
 <script>
 const BASE_PATH = "IData/"; 
 const POWER_FLOOR = 35000000;
+const MIN_SHEETS = 2; 
 const targetServers = ["167", "509"];
 let weeklyData = {};
 let allianceAverages = { timeline: [], growthTimeline: [] };
@@ -120,6 +124,35 @@ const metrics = {
 'stone_spent': 'STONE SPENT', 'mana_spent': 'MANA SPENT'
 };
 
+function toggleAllianceAverage() {
+    showAllianceAvg = !showAllianceAvg;
+    const btns = document.querySelectorAll('.alliance-toggle');
+    btns.forEach(btn => btn.classList.toggle('active', showAllianceAvg));
+    renderDisplay();
+}
+
+function cleanName(raw) { return raw === "ALL_KVKS" ? "★ ALL KVKS" : raw.replace(/^\d+\s*-\s*/, ''); }
+
+function updatePillPosition(mode, isSolo = false) {
+    const totalBtn = document.getElementById(isSolo ? 'mode-total-solo' : 'mode-total');
+    const growthBtn = document.getElementById(isSolo ? 'mode-growth-solo' : 'mode-growth');
+    const pill = document.getElementById(isSolo ? 'pill-bg-solo' : 'pill-bg');
+    if (!totalBtn || !pill) return;
+    if (mode === 'total') { 
+        pill.style.width = `${totalBtn.offsetWidth}px`; 
+        pill.style.left = `${totalBtn.offsetLeft}px`; 
+    } else { 
+        pill.style.width = `${growthBtn.offsetWidth}px`; 
+        pill.style.left = `${growthBtn.offsetLeft}px`; 
+    }
+}
+
+function setMode(mode) {
+    currentViewMode = mode;
+    renderDisplay();
+    setTimeout(() => updatePillPosition(mode, !!selectedPlayerId), 10);
+}
+
 async function init() {
     createMetricButtons();
     try {
@@ -128,23 +161,18 @@ async function init() {
         const selector = document.getElementById('seasonFolder');
         fileListData.iDataFolders.forEach(folder => {
             const opt = document.createElement('option');
-            opt.value = folder.name; opt.textContent = folder.name.replace('KVK', 'KvK');
+            opt.value = folder.name; opt.textContent = cleanName(folder.name);
             selector.appendChild(opt);
         });
 
-        // 1. Pre-fill search from localStorage
+        // PROFILE LOADED SEARCH LOGIC
         const savedId = localStorage.getItem('alliance_user_id');
         if (savedId) {
             document.getElementById('playerSearch').value = savedId;
         }
 
-        // 2. Default to ALL KVKS and wait for load
         selector.value = "ALL_KVKS";
         await handleFolderChange();
-
-        // 3. Final safety render once data is definitely there
-        renderDisplay();
-        
     } catch(e) { console.error("Init failed", e); }
 }
 
@@ -167,17 +195,15 @@ async function handleFolderChange() {
     const val = document.getElementById('seasonFolder');
     if (!val.value) return;
     document.getElementById('loader').style.display = 'flex';
-    
-    // Clear old data
     weeklyData = {}; 
     allianceAverages = { timeline: [], growthTimeline: [] };
-    
     isAllKvksMode = (val.value === 'ALL_KVKS');
     document.getElementById('toggleWrapper').style.display = isAllKvksMode ? 'flex' : 'none';
 
-    if (isAllKvksMode) await loadDynamicAllKvks();
-    else await loadSingleFolder(val.value);
-    
+    try {
+        if (isAllKvksMode) await loadDynamicAllKvks();
+        else await loadSingleFolder(val.value);
+    } catch (e) { console.error("Load Error:", e); }
     document.getElementById('loader').style.display = 'none';
     renderDisplay();
     if (isAllKvksMode) setTimeout(() => updatePillPosition(currentViewMode), 50);
@@ -189,20 +215,13 @@ async function loadDynamicAllKvks() {
     const latestPath = BASE_PATH + latestFolder.name.replace('KVK', 'KvK') + "/" + latestFolder.files[latestFolder.files.length - 1];
     const latestResp = await fetch(latestPath);
     const latestSheetData = parseCSV(await latestResp.text());
-    
-    // Only track IDs that currently meet the power floor
     const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
     for (const folderMeta of folders) {
         const fName = folderMeta.name.replace('KVK', 'KvK');
         const files = folderMeta.files;
         if (files.length < 2) continue;
-        
-        const [respOld, respNew] = await Promise.all([
-            fetch(BASE_PATH + fName + "/" + files[0]), 
-            fetch(BASE_PATH + fName + "/" + files[files.length - 1])
-        ]);
-        
+        const [respOld, respNew] = await Promise.all([fetch(BASE_PATH + fName + "/" + files[0]), fetch(BASE_PATH + fName + "/" + files[files.length - 1])]);
         if (!respOld.ok || !respNew.ok) continue;
         const [dataOld, dataNew] = [parseCSV(await respOld.text()), parseCSV(await respNew.text())];
 
@@ -210,16 +229,13 @@ async function loadDynamicAllKvks() {
         Object.keys(metrics).forEach(m => { avgTotal[m] = 0; avgGrowth[m] = 0; });
 
         activeIds.forEach(id => {
-            if (!weeklyData[id]) {
-                weeklyData[id] = { timeline: [], growthTimeline: [], latestStats: latestSheetData[id], sheetCount: 0 };
-            }
+            if (!weeklyData[id]) weeklyData[id] = { starts: [], ends: [], timeline: [], growthTimeline: [], latestStats: latestSheetData[id], sheetCount: 0 };
             if (dataOld[id] && dataNew[id]) {
                 let s = {}; Object.keys(metrics).forEach(m => s[m] = parseInt(dataOld[id][m]) || 0);
-                let e = { label: fName }; Object.keys(metrics).forEach(m => e[m] = parseInt(dataNew[id][m]) || 0);
+                let e = { label: fName }; 
+                Object.keys(metrics).forEach(m => e[m] = parseInt(dataNew[id][m]) || 0);
                 let g = { label: fName }; Object.keys(metrics).forEach(m => g[m] = e[m] - s[m]);
-                
-                weeklyData[id].timeline.push(e); 
-                weeklyData[id].growthTimeline.push(g);
+                weeklyData[id].timeline.push(e); weeklyData[id].growthTimeline.push(g); weeklyData[id].ends.push(e);
                 weeklyData[id].sheetCount++;
                 
                 Object.keys(metrics).forEach(m => { avgTotal[m] += e[m]; avgGrowth[m] += g[m]; });
@@ -228,8 +244,7 @@ async function loadDynamicAllKvks() {
         });
         if(count > 0) {
             Object.keys(metrics).forEach(m => { avgTotal[m] /= count; avgGrowth[m] /= count; });
-            allianceAverages.timeline.push(avgTotal); 
-            allianceAverages.growthTimeline.push(avgGrowth);
+            allianceAverages.timeline.push(avgTotal); allianceAverages.growthTimeline.push(avgGrowth);
         }
     }
 }
@@ -253,8 +268,7 @@ async function loadSingleFolder(folderName) {
             if (!weeklyData[id]) weeklyData[id] = { timeline: [], growthTimeline: [], latestStats: latestData[id], sheetCount: 0 };
             let e = { label: f.replace('.csv','') };
             Object.keys(metrics).forEach(m => e[m] = parseInt(d[id][m]) || 0);
-            weeklyData[id].timeline.push(e); 
-            weeklyData[id].sheetCount++;
+            weeklyData[id].timeline.push(e); weeklyData[id].sheetCount++;
             Object.keys(metrics).forEach(m => avgTotal[m] += e[m]);
             count++;
         });
@@ -267,9 +281,8 @@ async function loadSingleFolder(folderName) {
 
 function renderDisplay() {
     const grid = document.getElementById('mainGrid');
-    const query = document.getElementById('playerSearch').value.toString().toLowerCase().trim();
     const isGrowth = currentViewMode === 'growth' && isAllKvksMode;
-    
+    const query = document.getElementById('playerSearch').value.toLowerCase().trim();
     document.querySelectorAll('canvas').forEach(c => { const chart = Chart.getChart(c); if(chart) chart.destroy(); });
     grid.innerHTML = "";
 
@@ -283,19 +296,16 @@ function renderDisplay() {
     document.getElementById('controlsWrapper').style.display = 'block';
     document.getElementById('navActionContainer').innerHTML = `<button class="exit-btn" onclick="window.location.href='index.html'">← SYSTEM_RETURN</button>`;
 
-    // Filter logic
-    const filtered = Object.values(weeklyData).filter(p => {
-        const lordId = (p.latestStats.lord_id || p.latestStats.id || "").toString().toLowerCase();
-        const name = (p.latestStats.name || "").toString().toLowerCase();
-        const matchesQuery = !query || name.includes(query) || lordId.includes(query);
-        return p.sheetCount > 0 && matchesQuery;
-    });
-
-    // Sort logic
-    filtered.sort((a,b) => {
+    const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksMode ? 1 : MIN_SHEETS)).sort((a,b) => {
         const tA = isGrowth ? a.growthTimeline : a.timeline;
         const tB = isGrowth ? b.growthTimeline : b.timeline;
         return (tB[tB.length - 1][currentSortMetric] || 0) - (tA[tA.length - 1][currentSortMetric] || 0);
+    });
+
+    const filtered = sorted.filter(data => {
+        const lordId = (data.latestStats.lord_id || data.latestStats.id || "").toString().toLowerCase();
+        const name = (data.latestStats.name || "").toString().toLowerCase();
+        return !query || name.includes(query) || lordId.includes(query);
     });
 
     document.getElementById('subjectCount').textContent = `ACTIVE_MEMBERS // ${filtered.length}`;
@@ -304,16 +314,17 @@ function renderDisplay() {
         const lordId = data.latestStats.lord_id || data.latestStats.id;
         const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
         let displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric];
+        let displayLabel = isGrowth ? `${metrics[currentSortMetric]} GAINED IN LAST KVK` : metrics[currentSortMetric];
 
         const card = document.createElement('div');
-        card.className = `growth-card glow-purple`;
+        card.className = `growth-card ${index < 3 ? 'glow-'+(index+1) : 'glow-purple'}`;
         card.onclick = () => { selectedPlayerId = lordId; renderDisplay(); };
         card.innerHTML = `
-            <div class="rank-banner">#${index+1}</div>
+            <div class="rank-banner ${index < 3 ? 'rank-'+(index+1)+'-banner' : 'rank-std-banner'}">#${index+1}</div>
             <h3 style="margin:0; font-size:1.6rem; color:var(--text-title);">${data.latestStats.name}</h3>
             <div style="font-size:0.65rem; color:var(--text-dim); font-weight:900; margin-top:4px;">ID: ${lordId}</div>
             <div style="margin:20px 0;">
-                <div class="stat-label">${metrics[currentSortMetric]}</div>
+                <div class="stat-label">${displayLabel}</div>
                 <div class="stat-value" style="font-size:1.4rem;">${(displayVal || 0).toLocaleString()}</div>
             </div>
             <div class="chart-container"><canvas id="chart-${lordId}"></canvas></div>
@@ -348,12 +359,12 @@ function renderSoloMode(id, isGrowth) {
 
     Object.keys(metrics).forEach(mKey => {
         const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-        const val = isGrowth ? activeTimeline[activeTimeline.length-1][mKey] : activeTimeline[activeTimeline.length-1][mKey];
+        let displayVal = activeTimeline[activeTimeline.length - 1][mKey] || 0;
         const mini = document.createElement('div');
         mini.className = "growth-card glow-purple"; mini.style.cursor = "default";
         mini.innerHTML = `
             <div class="stat-label">${metrics[mKey]}</div>
-            <div class="stat-value" style="font-size:1.8rem;">${(val || 0).toLocaleString()}</div>
+            <div class="stat-value" style="font-size:1.8rem;">${(displayVal || 0).toLocaleString()}</div>
             <div class="chart-container" style="height:180px;"><canvas id="solo-${mKey}"></canvas></div>
         `;
         grid.appendChild(mini);
@@ -363,19 +374,24 @@ function renderSoloMode(id, isGrowth) {
     setTimeout(() => updatePillPosition(currentViewMode, true), 10);
 }
 
+function exitSoloMode() { selectedPlayerId = null; renderDisplay(); }
+
 function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
     const ctx = document.getElementById(canvasId).getContext('2d');
     const datasets = [{ 
-        label: 'Player', data: timeline.map(t => t[metricKey] || 0), 
-        borderColor: '#9333ea', tension: 0.3, fill: false, borderWidth: 2 
+        label: 'Player', data: timeline.map(t => t[metricKey]), 
+        borderColor: '#9333ea', pointRadius: isSolo ? 5 : 3, pointBackgroundColor: '#9333ea',
+        pointBorderColor: '#9333ea', tension: 0.3, fill: false, borderWidth: 2 
     }];
 
     if (showAllianceAvg) {
         const avgSet = isGrowthMode ? allianceAverages.growthTimeline : allianceAverages.timeline;
         if (avgSet && avgSet.length > 0) {
             datasets.push({
-                label: 'Alliance', data: avgSet.map(t => t[metricKey] || 0),
-                borderColor: 'rgba(255, 255, 255, 0.8)', tension: 0.3, fill: false, borderWidth: 2
+                label: 'Alliance', data: avgSet.map(t => t[metricKey]),
+                borderColor: 'rgba(255, 255, 255, 0.8)', pointRadius: isSolo ? 5 : 3,
+                pointBackgroundColor: '#ffffff', pointBorderColor: '#ffffff',
+                tension: 0.3, fill: false, borderWidth: 2
             });
         }
     }
@@ -386,7 +402,18 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         options: { 
             responsive: true, maintainAspectRatio: false, 
             plugins: { legend: { display: false } }, 
-            scales: { x: { display: true, ticks: { color: '#9d8ba1', font: { size: 8 } } }, y: { display: false } }
+            scales: { 
+                x: { 
+                    ticks: { 
+                        color: '#9d8ba1', 
+                        font: { size: isSolo ? 10 : 8, weight: 'bold' }, 
+                        maxRotation: 45, 
+                        minRotation: 45 
+                    }, 
+                    grid: { display: false } 
+                }, 
+                y: { display: false } 
+            } 
         }
     });
 }
@@ -403,12 +430,6 @@ function parseCSV(text) {
     });
     return result;
 }
-
-function setMode(mode) { currentViewMode = mode; renderDisplay(); }
-function toggleAllianceAverage() { showAllianceAvg = !showAllianceAvg; renderDisplay(); }
-function exitSoloMode() { selectedPlayerId = null; renderDisplay(); }
-function updatePillPosition(mode, isSolo = false) { /* Visual toggle logic */ }
-
 window.onload = init;
 </script>
 </body>
