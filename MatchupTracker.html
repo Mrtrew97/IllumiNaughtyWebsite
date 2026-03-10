@@ -8,7 +8,7 @@
     <style>
         :root {
             --main-width: 1400px;
-            --column-width: 300px; /* Standardized width for both dates and panels */
+            --column-width: 340px; /* Standardized panel width */
             --color-cyan: #22d3ee;
             --color-gold: #fbbf24;
             --color-title: #e2e8f0;
@@ -61,7 +61,7 @@
             background: transparent;
         }
 
-        /* Standardized Grid System */
+        /* Unified Grid System for perfect vertical centering */
         .unified-grid {
             display: grid;
             grid-template-columns: var(--column-width) 1fr var(--column-width);
@@ -69,7 +69,7 @@
             margin: 0 auto;
             gap: 20px;
             align-items: center;
-            justify-items: center; /* Forces children to center within their columns */
+            justify-items: center; 
         }
 
         .primary-controls { 
@@ -85,12 +85,13 @@
         .custom-select-wrapper { 
             position: relative; 
             display: flex; 
-            width: 100%; /* Spans the full 300px column */
-            max-width: var(--column-width);
+            /* 100% of column width minus the 40px padding of the panel below it */
+            width: calc(100% - 40px); 
         }
 
         .custom-select-wrapper select { 
             appearance: none;
+            -webkit-appearance: none;
             background: rgba(30, 10, 45, 0.8) !important; 
             border: 1px solid var(--border-color);
             color: var(--text-main);
@@ -106,7 +107,7 @@
             backdrop-filter: blur(10px);
             width: 100%;
             text-align: center;
-            text-align-last: center; /* Centers text in the select on some browsers */
+            text-align-last: center;
         }
 
         .custom-select-wrapper::after {
@@ -141,7 +142,7 @@
             background: var(--card-bg);
             border: 1px solid var(--border-color); 
             border-radius: 16px; 
-            padding: 20px; 
+            padding: 20px; /* 20px padding on each side */
             backdrop-filter: blur(10px); 
             box-sizing: border-box;
             text-align: center;
@@ -150,7 +151,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: var(--column-width); /* Fixed 300px */
+            width: var(--column-width); 
         }
         
         .multi-select-box { 
@@ -169,7 +170,7 @@
             overflow: hidden; 
             appearance: none;
             text-align: center;
-            box-sizing: border-box; /* Better for fixed width sizing */
+            box-sizing: border-box; 
         }
         
         .multi-select-box option { 
@@ -244,8 +245,8 @@
             border-top: 1px solid rgba(255,255,255,0.05);
         }
 
-        .col-a { display: flex; justify-content: flex-end; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--color-cyan); font-weight: 800; padding-right: 10px; }
-        .col-b { display: flex; justify-content: flex-start; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--color-gold); font-weight: 800; padding-left: 10px; }
+        .col-a { display: flex; justify-content: flex-end; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--color-cyan); font-weight: 800; padding-right: 15px; }
+        .col-b { display: flex; justify-content: flex-start; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--color-gold); font-weight: 800; padding-left: 15px; }
         .col-gap { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         
         .indicator-arrow { font-size: 1.4rem; font-weight: 900; }
