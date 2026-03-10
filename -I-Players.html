@@ -176,29 +176,34 @@ renderDisplay();
 setTimeout(() => updatePillPosition(mode, !!selectedPlayerId), 10);
 }
 
+// --- MODIFIED INIT ---
 async function init() {
-createMetricButtons();
-try {
-const res = await fetch('data/files.json');
-fileListData = await res.json();
-const selector = document.getElementById('seasonFolder');
-fileListData.iDataFolders.forEach(folder => {
-const opt = document.createElement('option');
-opt.value = folder.name; opt.textContent = cleanName(folder.name);
-selector.appendChild(opt);
-});
-selector.value = "ALL_KVKS";
-await handleFolderChange();
+    createMetricButtons();
+    try {
+        const res = await fetch('data/files.json');
+        fileListData = await res.json();
+        const selector = document.getElementById('seasonFolder');
+        fileListData.iDataFolders.forEach(folder => {
+            const opt = document.createElement('option');
+            opt.value = folder.name; opt.textContent = cleanName(folder.name);
+            selector.appendChild(opt);
+        });
 
-// --- NEW AUTO-FILL LOGIC ---
-const savedId = localStorage.getItem('alliance_user_id');
-if (savedId) {
-    document.getElementById('playerSearch').value = savedId;
-    renderDisplay();
-}
-// ---------------------------
+        // Set the folder
+        selector.value = "ALL_KVKS";
+        
+        // IMPORTANT: Await the data loading fully
+        await handleFolderChange();
 
-} catch(e) { console.error("Init failed", e); }
+        // Check for saved profile
+        const savedId = localStorage.getItem('alliance_user_id');
+        if (savedId) {
+            const searchInput = document.getElementById('playerSearch');
+            searchInput.value = savedId;
+            // Force the grid to update with the new value
+            renderDisplay();
+        }
+    } catch(e) { console.error("Init failed", e); }
 }
 
 function createMetricButtons() {
@@ -307,7 +312,7 @@ for (const f of files) {
 function renderDisplay() {
 const grid = document.getElementById('mainGrid');
 const isGrowth = currentViewMode === 'growth' && isAllKvksMode;
-const query = document.getElementById('playerSearch').value.toLowerCase();
+const query = document.getElementById('playerSearch').value.toLowerCase().trim();
 document.querySelectorAll('canvas').forEach(c => { const chart = Chart.getChart(c); if(chart) chart.destroy(); });
 grid.innerHTML = "";
 
@@ -327,11 +332,17 @@ const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksM
     return (tB[tB.length - 1][currentSortMetric] || 0) - (tA[tA.length - 1][currentSortMetric] || 0);
 });
 
-document.getElementById('subjectCount').textContent = `ACTIVE_MEMBERS // ${sorted.length}`;
+// Filter by query if search bar has content
+const filtered = sorted.filter(data => {
+    const lordId = (data.latestStats.lord_id || data.latestStats.id || "").toString().toLowerCase();
+    const name = (data.latestStats.name || "").toString().toLowerCase();
+    return !query || name.includes(query) || lordId.includes(query);
+});
 
-sorted.forEach((data, index) => {
+document.getElementById('subjectCount').textContent = `ACTIVE_MEMBERS // ${filtered.length}`;
+
+filtered.forEach((data, index) => {
     const lordId = data.latestStats.lord_id || data.latestStats.id;
-    if (query && !data.latestStats.name.toLowerCase().includes(query) && !lordId.toLowerCase().includes(query)) return;
     const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
     let displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric];
     let displayLabel = isGrowth ? `${metrics[currentSortMetric]} GAINED IN LAST KVK` : metrics[currentSortMetric];
