@@ -325,7 +325,7 @@ sorted.forEach((data, index) => {
     if (query && !data.latestStats.name.toLowerCase().includes(query) && !lordId.toLowerCase().includes(query)) return;
     const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
     let displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric];
-    let displayLabel = isGrowth ? `${metrics[currentSortMetric]} IN LAST KVK` : metrics[currentSortMetric];
+    let displayLabel = isGrowth ? `${metrics[currentSortMetric]} Gained IN LAST KVK` : metrics[currentSortMetric];
 
     const card = document.createElement('div');
     card.className = `growth-card ${index < 3 ? 'glow-'+(index+1) : 'glow-purple'}`;
