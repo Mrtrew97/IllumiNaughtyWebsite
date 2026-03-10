@@ -171,17 +171,18 @@
         
         .multi-select-box { 
             width: 100%; 
-            /* Dynamic Height Rules */
-            min-height: 50px;
-            max-height: 700px; 
             height: auto; 
-            
+            min-height: 50px;
             background: rgba(0, 0, 0, 0.3); 
-            border: 1px solid var(--border-color); border-radius: 12px; 
-            color: var(--text-main); font-family: 'Inter', sans-serif; 
-            font-size: 0.8rem; margin-top: 12px; outline: none !important; padding: 8px;
-            scrollbar-width: thin; scrollbar-color: var(--accent-purple) transparent;
-            overflow-y: auto;
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            color: var(--text-main); 
+            font-family: 'Inter', sans-serif; 
+            font-size: 0.8rem; 
+            margin-top: 12px; 
+            outline: none !important; 
+            padding: 12px 8px; /* Extra vertical padding to avoid cutting off items */
+            overflow: hidden; /* Specifically hiding scrollbars */
             appearance: none;
             text-align: center;
         }
@@ -437,8 +438,8 @@
             const savedSelections = Array.from(select.selectedOptions).map(o => o.value);
             select.innerHTML = '';
             
-            // Set dynamic size so it expands to the list length
-            select.setAttribute('size', count);
+            // Set size to exactly match the length to avoid scrollbars
+            select.size = count;
 
             sortedSIDs.forEach(sid => {
                 const opt = document.createElement('option');
