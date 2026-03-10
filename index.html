@@ -1,181 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IllumiNaughty // COMMAND_CENTER</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        /* CORE LAYOUT */
-        :root {
-            --accent-purple: #9333ea;
-            --text-title: #ffffff;
-            --text-dim: #9d8ba1;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alliance Dashboard // CORE</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* PROFILE TRIGGER PILL BUTTON */
+.profile-trigger {
+position: fixed; top: 20px; right: 20px;
+padding: 8px 20px; border-radius: 50px;
+background: rgba(147, 51, 234, 0.1);
+border: 1px solid var(--accent-purple);
+color: var(--text-main);
+display: flex; align-items: center; justify-content: center;
+cursor: pointer; z-index: 100; transition: all 0.3s ease;
+font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;
+box-shadow: 0 0 15px rgba(147, 51, 234, 0.2);
+text-transform: uppercase;
+}
+.profile-trigger:hover { background: var(--accent-purple); transform: translateY(-2px); }
 
-        body {
-            background-color: #0a0a0c;
-            color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-        }
+/* MODAL STYLES */
+.modal-overlay {
+display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+z-index: 1000; justify-content: center; align-items: center;
+}
+.modal-content {
+background: #0d0d0d; border: 1px solid var(--accent-purple);
+padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 350px;
+box-shadow: 0 0 40px rgba(147, 51, 234, 0.3); text-align: center;
+}
+.modal-content h2 { color: var(--text-main); margin-bottom: 25px; font-size: 0.85rem; letter-spacing: 2px; font-weight: 900; }
 
-        .dashboard-container {
-            padding: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+.modal-input {
+width: 100%; background: #1a1a1a; border: 1px solid var(--border-color);
+color: white; padding: 12px; border-radius: 8px; box-sizing: border-box;
+text-align: center; margin-bottom: 15px; font-family: inherit;
+}
 
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
+.save-btn {
+width: 100%; background: var(--accent-purple); color: white;
+border: none; padding: 12px; border-radius: 8px; font-weight: 900;
+cursor: pointer; text-transform: uppercase; margin-bottom: 10px;
+}
 
-        header h1 {
-            font-size: 3.5rem;
-            letter-spacing: 15px;
-            color: var(--text-title);
-            margin: 0;
-            text-transform: uppercase;
-            font-weight: 900;
-        }
+.control-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 12px;
+margin-bottom: 10px;
+}
 
-        .subtitle {
-            color: var(--accent-purple);
-            font-weight: 900;
-            letter-spacing: 5px;
-            margin-top: 10px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
+.action-btn {
+width: 100%; background: rgba(255, 255, 255, 0.03); color: white;
+border: 1px solid var(--border-color); padding: 14px; border-radius: 8px; 
+font-weight: 800; cursor: pointer; text-transform: uppercase;
+font-size: 0.7rem; transition: all 0.2s ease;
+letter-spacing: 1px;
+}
+.action-btn:hover { 
+background: rgba(147, 51, 234, 0.1); 
+border-color: var(--accent-purple);
+transform: scale(1.02);
+}
 
-        /* CONTROL GRID */
-        .control-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
+.logout-btn {
+width: 100%; background: transparent; color: #ef4444;
+border: 1px solid #ef4444; padding: 10px; border-radius: 8px;
+font-size: 0.7rem; font-weight: 900; cursor: pointer;
+text-transform: uppercase; margin-top: 20px;
+}
 
-        .action-btn {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(147, 51, 234, 0.3);
-            color: #fff;
-            padding: 40px 20px;
-            border-radius: 15px;
-            font-weight: 900;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
+#search-status { font-size: 0.65rem; margin-top: 15px; color: var(--accent-purple); font-weight: 800; text-transform: uppercase; min-height: 15px; }
 
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(147, 51, 234, 0.2), transparent);
-            transition: 0.5s;
-        }
-
-        .action-btn:hover::before {
-            left: 100%;
-        }
-
-        .action-btn:hover {
-            background: rgba(147, 51, 234, 0.1);
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 30px rgba(147, 51, 234, 0.2);
-            transform: translateY(-10px);
-        }
-
-        .action-btn span {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            letter-spacing: 1px;
-        }
-
-        /* DECORATIVE ELEMENTS */
-        .bg-glow {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%);
-            z-index: -1;
-            pointer-events: none;
-        }
-    </style>
+.home-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 900px; margin-top: 40px; }
+.bento-card { text-decoration: none; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s ease; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; }
+.bento-card:hover { transform: translateY(-5px); border-color: var(--accent-purple); }
+.home-footer { grid-column: span 2; padding: 20px; border: 1px dashed var(--border-color); border-radius: 16px; text-align: center; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; font-weight: 800; background: rgba(147, 51, 234, 0.03); }
+.status-dot { width: 8px; height: 8px; background: var(--positive); border-radius: 50%; display: inline-block; margin-right: 10px; }
+</style>
 </head>
-<body>
+<body class="home-layout">
 
-<div class="bg-glow"></div>
+<div class="profile-trigger" onclick="toggleModal()" id="profile-icon">INPUT ID</div>
 
-<div class="dashboard-container">
-    <header>
-        <h1>COMMAND_CENTER</h1>
-        <div class="subtitle">ALLIANCE_MANAGEMENT_PROTOCOL_V1.0</div>
-    </header>
+<div class="modal-overlay" id="profileModal" onclick="toggleModal()">
+<div class="modal-content" onclick="event.stopPropagation()">
+<h2 id="modal-title">WELCOME TO ILLUMINAUGHTY</h2>
 
-    <div class="control-section">
-        <button class="action-btn" onclick="goToMyStats()">
-            MY STATS
-            <span>PERSONAL_DRILLDOWN</span>
-        </button>
-        
-        <button class="action-btn" onclick="window.location.href='-I-Alliance.html'">
-            ALLIANCE DATA
-            <span>GROUP_METRICS</span>
-        </button>
+<div id="auth-section">
+<input type="text" id="id-search" class="modal-input" placeholder="ENTER LORD_ID" onkeydown="if(event.key==='Enter') verifyLordId()">
+<button class="save-btn" onclick="verifyLordId()">Verify ID</button>
+</div>
 
-        <button class="action-btn" onclick="window.location.href='-I-Players.html'">
-            PLAYER DIRECTORY
-            <span>GLOBAL_LORDS_LIST</span>
-        </button>
+<div id="control-section" style="display: none;">
+<div class="control-grid">
+                    <button class="action-btn" onclick="goToMyStats()">My Stats</button>
+                    <button class="action-btn">sample_text_2</button>
+                    <button class="action-btn">sample_text_3</button>
+                    <button class="action-btn" onclick="window.location.href='#'">sample_text_1</button>
+                    <button class="action-btn" onclick="window.location.href='#'">sample_text_2</button>
+                    <button class="action-btn" onclick="window.location.href='#'">sample_text_3</button>
+</div>
+<button class="logout-btn" onclick="logout()">Terminate Session</button>
+</div>
 
-        <button class="action-btn">
-            SYSTEM LOGS
-            <span>ACCESS_CHRONICLES</span>
-        </button>
-    </div>
+<div id="search-status"></div>
+</div>
+</div>
+
+<div class="home-container">
+<div class="brand-header">
+<div class="stat-label" style="color: var(--accent-purple);">System Status: Online</div>
+<h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 5px 0; color: var(--text-main);">
+ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// CORE</span>
+</h1>
+</div>
+
+<div class="bento-grid">
+<a href="alliance-stats.html" class="bento-card">
+<div><div style="font-size: 1.5rem; margin-bottom: 15px;">📊</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Deep-dive metrics for registered players.</p></div>
+<div class="hint-text">Enable Logs —></div>
+</a>
+<a href="-I-Players.html" class="bento-card">
+<div><div style="font-size: 1.5rem; margin-bottom: 15px;">📈</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">-I- Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Weekly trends and growth deltas.</p></div>
+<div class="hint-text">View Analytics —></div>
+</a>
+<a href="MatchupTracker.html" class="bento-card">
+<div><div style="font-size: 1.5rem; margin-bottom: 15px;">⚔️</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Matchup Tracker</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Compare alliance values.</p></div>
+<div class="hint-text">Enter Dashboard —></div>
+</a>
+<a href="TopPerf.html" class="bento-card">
+<div><div style="font-size: 1.5rem; margin-bottom: 15px;">🏆</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Top Performances</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Check top player categories.</p></div>
+<div class="hint-text">Check Scoreboard —></div>
+</a>
+<div class="home-footer" id="main-footer">
+<span class="status-dot"></span> SYSTEM ONLINE // MADE BY DADREW
+</div>
+</div>
 </div>
 
 <script>
-    /**
-     * Logic for the My Stats button
-     * Uses the stored ID to build a filtered URL for the player page
-     */
-    function goToMyStats() {
-        // Retrieve the user's ID from local storage
-        const savedId = localStorage.getItem('alliance_user_id');
-        
-        if (savedId) {
-            // Redirect with the ID parameter for automatic filtering
-            window.location.href = `-I-Players.html?id=${savedId}`;
-        } else {
-            // If no ID exists, fallback to the general player list
-            alert("SYSTEM_ERROR: No User ID found. Please search for your ID in the Directory first.");
-            window.location.href = '-I-Players.html';
-        }
-    }
-</script>
+const BASE_PATH = "IData/";
+const modal = document.getElementById('profileModal');
+const statusDiv = document.getElementById('search-status');
+const authSection = document.getElementById('auth-section');
+const controlSection = document.getElementById('control-section');
 
+function toggleModal() { 
+modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex'; 
+if (modal.style.display === 'none') statusDiv.innerText = "";
+}
+
+function updateUI() {
+const savedName = localStorage.getItem('alliance_user_name');
+const savedID = localStorage.getItem('alliance_user_id');
+
+if (savedName) {
+document.getElementById('profile-icon').innerText = savedName.toUpperCase();
+document.getElementById('modal-title').innerText = "SESSION: " + savedName.toUpperCase();
+authSection.style.display = "none";
+controlSection.style.display = "block";
+document.getElementById('main-footer').innerHTML = `<span class="status-dot"></span> GOV_AUTH: ${savedName} [ID: ${savedID}]`;
+} else {
+document.getElementById('profile-icon').innerText = "INPUT ID";
+document.getElementById('modal-title').innerText = "WELCOME TO ILLUMINAUGHTY";
+authSection.style.display = "block";
+controlSection.style.display = "none";
+document.getElementById('main-footer').innerHTML = `<span class="status-dot"></span> SYSTEM ONLINE // MADE BY DADREW`;
+}
+}
+
+window.onload = updateUI;
+
+async function verifyLordId() {
+const inputId = document.getElementById('id-search').value.trim();
+if (!inputId) return;
+statusDiv.innerText = "QUERYING_DATABASE...";
+try {
+const res = await fetch('data/files.json');
+const fileListData = await res.json();
+const latestFolder = fileListData.iDataFolders[fileListData.iDataFolders.length - 1];
+const folderName = latestFolder.name.replace('KVK', 'KvK');
+const fullPath = BASE_PATH + folderName + "/" + latestFolder.files[latestFolder.files.length - 1];
+
+const csvResp = await fetch(fullPath);
+const csvText = await csvResp.text();
+const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+const idIdx = headers.findIndex(h => h === 'lord_id' || h === 'id');
+const nameIdx = headers.findIndex(h => h === 'name');
+
+let found = null;
+for (let i = 1; i < lines.length; i++) {
+const cells = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+if (cells[idIdx] === inputId) { found = { name: cells[nameIdx], id: cells[idIdx] }; break; }
+}
+
+if (found) {
+localStorage.setItem('alliance_user_name', found.name);
+localStorage.setItem('alliance_user_id', found.id);
+updateUI();
+statusDiv.innerText = "ACCESS GRANTED";
+                    
+                    // Close modal automatically after success
+                    setTimeout(() => { 
+                        toggleModal();
+                    }, 800);
+                    // Modal stays open for the user to see the dashboard buttons
+} else { 
+statusDiv.innerText = "INVALID LORD_ID"; 
+}
+} catch (e) { 
+statusDiv.innerText = "CONNECTION_FAILURE"; 
+}
+}
+
+function logout() {
+localStorage.removeItem('alliance_user_name');
+localStorage.removeItem('alliance_user_id');
+updateUI();
+toggleModal();
+}
+
+function goToMyStats() {
+    const savedId = localStorage.getItem('alliance_user_id');
+    if (savedId) {
+        window.location.href = `-I-Players.html?id=${savedId}`;
+    } else {
+        window.location.href = '-I-Players.html';
+    }
+}
+
+// Listen for storage changes (sync across tabs)
+window.addEventListener('storage', updateUI);
+</script>
 </body>
 </html>
