@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Intelligence Core // DRILLDOWN_V8.1</title>
+<title>Intelligence Core // DRILLDOWN_V8.2</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -50,8 +50,33 @@ z-index: 1; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
 .growth-card { position: relative; z-index: 10; transition: transform 0.3s ease; cursor: pointer; }
 .growth-card:hover { z-index: 11; transform: translateY(-8px); }
 .metric-bar { display: flex; gap: 6px; overflow-x: auto; padding: 5px 0; scrollbar-width: none; }
-.solo-header { grid-column: 1 / -1; padding: 40px 0 60px 0; text-align: center; }
-.solo-header h2 { font-size: 3.5rem; color: var(--text-title); font-weight: 900; text-transform: uppercase; }
+
+/* REFIXED SOLO HEADER */
+.solo-header { 
+    grid-column: 1 / -1; 
+    padding: 60px 0; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+.solo-header h2 { 
+    font-size: 3.5rem; 
+    color: var(--text-title); 
+    font-weight: 900; 
+    text-transform: uppercase;
+    margin: 10px 0;
+}
+.solo-label-id {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 900;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+}
+
 .chart-container { height: 160px; margin-top: 15px; }
 .delta-text { font-weight: 900; font-size: 0.75rem; margin-top: 4px; letter-spacing: 1px; }
 .positive { color: #10b981; }
@@ -317,11 +342,14 @@ const grid = document.getElementById('mainGrid');
 const data = weeklyData[id];
 const header = document.createElement('div');
 header.className = 'solo-header';
+
+// Refixed Stacked/Centered Header
 header.innerHTML = `
-    <div class="stat-label" style="letter-spacing: 4px; color: var(--accent-purple);">MEMBER_ANALYSIS</div>
+    <div class="stat-label" style="letter-spacing: 4px; color: var(--accent-purple); margin-bottom: 5px;">MEMBER_ANALYSIS</div>
     <h2>${data.latestStats.name}</h2>
-    <div class="stat-label" style="font-size: 0.8rem;">ID: ${id}</div>
-    <div class="view-toggle-container" style="margin-top: 30px; display: ${isAllKvksMode ? 'flex' : 'none'};">
+    <div class="solo-label-id">ID: ${id}</div>
+    
+    <div class="view-toggle-container" style="display: ${isAllKvksMode ? 'flex' : 'none'};">
         <div id="pill-bg-solo" class="pill-slider"></div>
         <button id="mode-total-solo" class="toggle-btn ${currentViewMode === 'total' ? 'active' : ''}" onclick="setMode('total')">TOTAL</button>
         <button id="mode-growth-solo" class="toggle-btn ${currentViewMode === 'growth' ? 'active' : ''}" onclick="setMode('growth')">GROWTH</button>
