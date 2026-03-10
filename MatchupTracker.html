@@ -11,8 +11,6 @@
             --color-cyan: #22d3ee;
             --color-gold: #fbbf24;
             --color-title: #e2e8f0;
-            --center-gap: 400px;
-            --selector-width: 250px;
             --bg-color: #030005; 
             --card-bg: rgba(20, 10, 30, 0.6);
             --text-main: #ffffff;
@@ -62,37 +60,34 @@
             background: transparent;
         }
 
-        .layout-grid {
+        /* Unified Grid System for alignment */
+        .unified-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 300px 1fr 300px; /* Matched to matchup-grid */
             max-width: var(--main-width);
             margin: 0 auto;
-            align-items: start;
             gap: 20px;
+            align-items: center;
         }
 
         .primary-controls { 
-            margin: 0 auto 30px auto;
             background: rgba(147, 51, 234, 0.03); 
             border: 1px solid var(--border-color);
             border-radius: 16px;
             padding: 20px;
             box-sizing: border-box;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-            align-items: center;
+            margin-bottom: 30px;
         }
 
         .custom-select-wrapper { 
             position: relative; 
             display: flex; 
-            align-items: center; 
-            justify-content: center;
+            width: 100%;
         }
 
         .custom-select-wrapper select { 
             appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
             background: rgba(30, 10, 45, 0.8) !important; 
             border: 1px solid var(--border-color);
             color: var(--text-main);
@@ -106,37 +101,21 @@
             text-transform: uppercase;
             transition: background 0.2s ease;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             width: 100%;
             text-align: center;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .custom-select-wrapper select option {
-            background-color: #0f0518; 
-            color: white;
-            padding: 10px;
-        }
-
-        .custom-select-wrapper select:focus {
-            background: rgba(45, 15, 65, 0.95) !important;
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
         }
 
         .custom-select-wrapper::after {
             content: ''; 
-            width: 0; height: 0;
             border-left: 4px solid transparent; 
             border-right: 4px solid transparent;
             border-top: 5px solid var(--accent-purple);
             position: absolute; 
             right: 15px; 
+            top: 50%;
+            transform: translateY(-50%);
             pointer-events: none; 
-            opacity: 0.8;
         }
-
-        .date-control-item { display: flex; width: 100%; justify-content: center; }
 
         .versus-divider {
             text-align: center;
@@ -148,12 +127,10 @@
             opacity: 0.6;
             letter-spacing: 2px;
             text-shadow: 0 0 10px rgba(147, 51, 234, 0.4);
-            align-self: center;
         }
         
         .matchup-grid { 
-            margin: 0 auto 25px auto;
-            grid-template-columns: 300px 1fr 300px;
+            align-items: start;
         }
         
         .alliance-select-panel { 
@@ -164,9 +141,11 @@
             backdrop-filter: blur(10px); 
             box-sizing: border-box;
             text-align: center;
-            height: fit-content;
             position: sticky;
             top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centering coalition content */
         }
         
         .multi-select-box { 
@@ -188,7 +167,6 @@
             box-sizing: content-box;
         }
         
-        .multi-select-box:focus { border: 1px solid var(--accent-purple); }
         .multi-select-box option { 
             padding: 10px; 
             border-radius: 6px; 
@@ -196,8 +174,8 @@
             cursor: pointer; 
             color: var(--text-dim); 
             background: transparent;
-            text-align: center;
         }
+
         .multi-select-box option:checked { 
             background: linear-gradient(90deg, rgba(147, 51, 234, 0.8) 0%, rgba(147, 51, 234, 0.4) 100%) !important; 
             color: white !important; 
@@ -229,19 +207,19 @@
             letter-spacing: -0.5px; 
             margin-top: 5px; 
             text-transform: uppercase;
-            word-break: break-word;
         }
         #tagA { color: var(--color-cyan); }
         #tagB { color: var(--color-gold); }
         
         .vs-badge { 
-            font-weight: 900; 
+            font-weight: 950; 
             color: var(--accent-purple); 
-            opacity: 0.7; 
-            font-size: 0.6rem; 
-            letter-spacing: 2px; 
+            font-size: 1.5rem; /* Increased size */
+            letter-spacing: 4px; 
             text-transform: uppercase;
             text-align: center;
+            text-shadow: 0 0 20px rgba(147, 51, 234, 0.6);
+            padding: 0 10px;
         }
 
         .metric-comparison-list {
@@ -251,32 +229,22 @@
             border-radius: 0 0 24px 24px;
             overflow: hidden;
         }
+
         .metric-row {
             display: grid;
-            grid-template-columns: 1fr 220px 1fr; /* Widened center for arrows */
+            grid-template-columns: 1fr 220px 1fr;
             align-items: center;
             padding: 15px 0;
             border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .col-a { text-align: center; font-size: 1.1rem; color: var(--color-cyan); font-weight: 800; display: flex; justify-content: flex-end; align-items: center; gap: 15px; }
-        .col-b { text-align: center; font-size: 1.1rem; color: var(--color-gold); font-weight: 800; display: flex; justify-content: flex-start; align-items: center; gap: 15px; }
-        
-        .col-gap { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
-        
-        .metric-label-style { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
-        .delta-value { font-weight: 900; font-size: 0.85rem; }
-        
-        .indicator-arrow {
-            font-size: 1.4rem;
-            line-height: 1;
-            font-weight: 900;
-            user-select: none;
-        }
 
-        .stat-label { font-size: 0.75rem; color: #d1cada; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
-        .loading-overlay { position: fixed; inset: 0; background: rgba(3,0,5,0.98); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(10px); }
-        .loading-text { color: var(--accent-purple); font-weight: 900; letter-spacing: 5px; font-size: 0.7rem; }
+        .col-a { display: flex; justify-content: flex-end; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--color-cyan); font-weight: 800; }
+        .col-b { display: flex; justify-content: flex-start; align-items: center; gap: 15px; font-size: 1.1rem; color: var(--color-gold); font-weight: 800; }
+        .col-gap { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         
+        .indicator-arrow { font-size: 1.4rem; font-weight: 900; }
+        .stat-label { font-size: 0.75rem; color: #d1cada; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(3,0,5,0.98); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .positive { color: var(--positive); }
         .negative { color: var(--negative); }
     </style>
@@ -294,21 +262,17 @@
         </div>
     </header>
     
-    <div class="layout-grid primary-controls">
-        <div class="date-control-item">
-            <div class="custom-select-wrapper">
-                <select id="dateStart" onchange="handleDateChange()"></select>
-            </div>
+    <div class="unified-grid primary-controls">
+        <div class="custom-select-wrapper">
+            <select id="dateStart" onchange="handleDateChange()"></select>
         </div>
         <div class="versus-divider">TIMELINE_SCOPE</div>
-        <div class="date-control-item">
-            <div class="custom-select-wrapper">
-                <select id="dateEnd" onchange="handleDateChange()"></select>
-            </div>
+        <div class="custom-select-wrapper">
+            <select id="dateEnd" onchange="handleDateChange()"></select>
         </div>
     </div>
 
-    <div class="layout-grid matchup-grid">
+    <div class="unified-grid matchup-grid">
         <div class="alliance-select-panel">
             <span class="stat-label">COALITION_A</span>
             <select id="allianceStart" class="multi-select-box" multiple></select>
@@ -371,11 +335,8 @@
         showLoader(true);
         try {
             const response = await fetch('data/files.json');
-            if (!response.ok) throw new Error('Could not load files.json');
-            
             fileListData = await response.json();
             const foundFiles = fileListData.mainDataFiles;
-
             if (foundFiles.length === 0) return;
 
             const oldestFile = foundFiles[foundFiles.length-1];
@@ -385,13 +346,10 @@
             masterData.forEach(row => {
                 const sID = row.home_server;
                 const tag = row.alliance_tag;
-                if (sID && tag && !masterAllianceMap[sID]) {
-                    masterAllianceMap[sID] = tag;
-                }
+                if (sID && tag && !masterAllianceMap[sID]) masterAllianceMap[sID] = tag;
             });
 
             document.getElementById('namingSourceLabel').innerText = `Names: ${oldestFile.replace('.csv','')}`;
-
             const sSelect = document.getElementById('dateStart');
             const eSelect = document.getElementById('dateEnd');
             
@@ -414,12 +372,7 @@
             e.preventDefault(); 
             const option = e.target;
             if (option.tagName === 'OPTION') {
-                const scrollPos = this.scrollTop;
                 option.selected = !option.selected;
-                setTimeout(() => {
-                    this.focus({preventScroll: true});
-                    this.scrollTop = scrollPos;
-                }, 0);
                 compareData();
             }
         });
@@ -428,26 +381,18 @@
     async function handleDateChange() {
         const startFile = document.getElementById('dateStart').value;
         const endFile = document.getElementById('dateEnd').value;
-        if (!fileDataCache[startFile]) {
-            const resS = await fetch(startFile);
-            fileDataCache[startFile] = parseCSV(await resS.text());
-        }
-        if (!fileDataCache[endFile]) {
-            const resE = await fetch(endFile);
-            fileDataCache[endFile] = parseCSV(await resE.text());
-        }
+        if (!fileDataCache[startFile]) fileDataCache[startFile] = parseCSV(await (await fetch(startFile)).text());
+        if (!fileDataCache[endFile]) fileDataCache[endFile] = parseCSV(await (await fetch(endFile)).text());
         updateAllianceLists();
     }
 
     function updateAllianceLists() {
         const sortedSIDs = Object.keys(masterAllianceMap).sort((a,b) => a - b);
-        const count = sortedSIDs.length;
-
         ['allianceStart', 'allianceEnd'].forEach(id => {
             const select = document.getElementById(id);
             const savedSelections = Array.from(select.selectedOptions).map(o => o.value);
             select.innerHTML = '';
-            select.size = count;
+            select.size = sortedSIDs.length;
             sortedSIDs.forEach(sid => {
                 const opt = document.createElement('option');
                 opt.value = sid; 
@@ -485,14 +430,11 @@
         const eF = document.getElementById('dateEnd').value;
         const sSel = Array.from(document.getElementById('allianceStart').selectedOptions);
         const eSel = Array.from(document.getElementById('allianceEnd').selectedOptions);
-        if (!sSel.length || !eSel.length || !fileDataCache[sF] || !fileDataCache[eF]) {
-            document.getElementById('tagA').innerText = "--";
-            document.getElementById('tagB').innerText = "--";
-            document.getElementById('metricsDisplay').innerHTML = "";
-            return;
-        }
+        if (!sSel.length || !eSel.length) return;
+
         const groupA = calculateHybrid(sSel.map(o => o.value), fileDataCache[sF], fileDataCache[eF]);
         const groupB = calculateHybrid(eSel.map(o => o.value), fileDataCache[sF], fileDataCache[eF]);
+        
         document.getElementById('tagA').innerText = sSel.map(o => o.getAttribute('data-tag')).join(' + ');
         document.getElementById('tagB').innerText = eSel.map(o => o.getAttribute('data-tag')).join(' + ');
         
@@ -501,29 +443,19 @@
             const diff = groupA[key] - groupB[key];
             const arrowA = diff > 0 ? `<span class="indicator-arrow positive">←</span>` : '';
             const arrowB = diff < 0 ? `<span class="indicator-arrow negative">→</span>` : '';
-            
             return `<div class="metric-row">
-                    <div class="col-a">
-                        ${Math.round(groupA[key]).toLocaleString()}
-                        ${arrowA}
-                    </div>
+                    <div class="col-a">${Math.round(groupA[key]).toLocaleString()} ${arrowA}</div>
                     <div class="col-gap">
                         <span class="metric-label-style">${label}</span>
-                        <span class="delta-value ${diff >= 0 ? 'positive' : 'negative'}">
-                            ${(diff >= 0 ? '+' : '') + Math.round(diff).toLocaleString()}
-                        </span>
+                        <span class="delta-value ${diff >= 0 ? 'positive' : 'negative'}">${(diff >= 0 ? '+' : '') + Math.round(diff).toLocaleString()}</span>
                     </div>
-                    <div class="col-b">
-                        ${arrowB}
-                        ${Math.round(groupB[key]).toLocaleString()}
-                    </div>
+                    <div class="col-b">${arrowB} ${Math.round(groupB[key]).toLocaleString()}</div>
                 </div>`;
         }).join('');
     }
 
     function showLoader(show) { document.getElementById('globalLoader').style.display = show ? 'flex' : 'none'; }
-    function init() { setupToggleLogic('allianceStart'); setupToggleLogic('allianceEnd'); scanFiles(); }
-    window.onload = init;
+    window.onload = () => { setupToggleLogic('allianceStart'); setupToggleLogic('allianceEnd'); scanFiles(); };
 </script>
 </body>
 </html>
