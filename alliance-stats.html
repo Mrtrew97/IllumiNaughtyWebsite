@@ -138,6 +138,14 @@
             };
             bar.appendChild(btn);
         });
+
+        // INTEGRATED: Retrieval Logic
+        const savedId = localStorage.getItem('alliance_user_id'); 
+        if (savedId) { 
+            document.getElementById('playerSearch').value = savedId; 
+            localStorage.removeItem('alliance_user_id'); 
+        }
+
         scanFiles();
     }
 
