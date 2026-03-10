@@ -98,9 +98,9 @@
 
             <div id="control-section" style="display: none;">
                 <div class="control-grid">
-                    <button class="action-btn">sample_text_1</button>
-                    <button class="action-btn">sample_text_2</button>
-                    <button class="action-btn">sample_text_3</button>
+                    <button class="action-btn" onclick="window.location.href='#'">sample_text_1</button>
+                    <button class="action-btn" onclick="window.location.href='#'">sample_text_2</button>
+                    <button class="action-btn" onclick="window.location.href='#'">sample_text_3</button>
                 </div>
                 <button class="logout-btn" onclick="logout()">Terminate Session</button>
             </div>
@@ -202,11 +202,7 @@
                     localStorage.setItem('alliance_user_id', found.id);
                     updateUI();
                     statusDiv.innerText = "ACCESS GRANTED";
-                    
-                    // Close modal automatically after success
-                    setTimeout(() => { 
-                        toggleModal();
-                    }, 800);
+                    // Modal stays open for the user to see the dashboard buttons
                 } else { 
                     statusDiv.innerText = "INVALID LORD_ID"; 
                 }
@@ -222,7 +218,6 @@
             toggleModal();
         }
 
-        // Listen for storage changes (sync across tabs)
         window.addEventListener('storage', updateUI);
     </script>
 </body>
