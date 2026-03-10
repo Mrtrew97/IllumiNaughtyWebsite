@@ -176,7 +176,6 @@ renderDisplay();
 setTimeout(() => updatePillPosition(mode, !!selectedPlayerId), 10);
 }
 
-// NEW FUNCTION: Storage Logic
 function goToDrilldown(lordId) {
     localStorage.setItem('alliance_user_id', lordId);
     window.location.href = '-I-Players.html';
@@ -185,7 +184,6 @@ function goToDrilldown(lordId) {
 async function init() {
 createMetricButtons();
 
-// NEW LOGIC: Retrieval part
 const savedId = localStorage.getItem('alliance_user_id'); 
 if (savedId) {
     document.getElementById('playerSearch').value = savedId;
@@ -221,6 +219,20 @@ bar.appendChild(btn);
 });
 }
 
+// Helper function to print alliance stats to console
+function printAllianceAverages() {
+    console.log("%c--- ALLIANCE AVERAGE REPORT ---", "color: #9333ea; font-weight: bold; font-size: 1.2rem;");
+    if (isAllKvksMode) {
+        console.log("Mode: ALL KVKS (Total Stats)");
+        console.table(allianceAverages.timeline);
+        console.log("Mode: ALL KVKS (Growth Stats)");
+        console.table(allianceAverages.growthTimeline);
+    } else {
+        console.log(`Mode: SINGLE KVK (${document.getElementById('seasonFolder').value})`);
+        console.table(allianceAverages.timeline);
+    }
+}
+
 async function handleFolderChange() {
 const val = document.getElementById('seasonFolder');
 if (!val.value) return;
@@ -234,6 +246,9 @@ try {
 if (isAllKvksMode) await loadDynamicAllKvks();
 else await loadSingleFolder(val.value);
 } catch (e) { console.error("Load Error:", e); }
+
+printAllianceAverages(); // Print stats whenever folder data changes
+
 document.getElementById('loader').style.display = 'none';
 renderDisplay();
 if (isAllKvksMode) setTimeout(() => updatePillPosition(currentViewMode), 50);
@@ -273,7 +288,7 @@ for (const folderMeta of folders) {
         }
     });
     if(count > 0) {
-        Object.keys(metrics).forEach(m => { avgTotal[m] /= count; avgGrowth[m] /= count; });
+        Object.keys(metrics).forEach(m => { avgTotal[m] = Math.round(avgTotal[m] / count); avgGrowth[m] = Math.round(avgGrowth[m] / count); });
         allianceAverages.timeline.push(avgTotal); allianceAverages.growthTimeline.push(avgGrowth);
     }
 }
@@ -303,7 +318,7 @@ for (const f of files) {
         count++;
     });
     if(count > 0) {
-        Object.keys(metrics).forEach(m => avgTotal[m] /= count);
+        Object.keys(metrics).forEach(m => avgTotal[m] = Math.round(avgTotal[m] / count));
         allianceAverages.timeline.push(avgTotal);
     }
 }
@@ -332,7 +347,6 @@ const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksM
     return (tB[tB.length - 1][currentSortMetric] || 0) - (tA[tA.length - 1][currentSortMetric] || 0);
 });
 
-// Apply Filtering for search
 const filtered = sorted.filter(data => {
     const lordId = (data.latestStats.lord_id || data.latestStats.id || "").toString().toLowerCase();
     const name = (data.latestStats.name || "").toString().toLowerCase();
