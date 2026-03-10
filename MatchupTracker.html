@@ -7,11 +7,11 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         :root {
-            --main-width: 1400px; /* Widened to accommodate side-by-side layout */
+            --main-width: 1400px;
             --color-cyan: #22d3ee;
             --color-gold: #fbbf24;
             --color-title: #e2e8f0;
-            --center-gap: 400px; /* Space for the central metrics */
+            --center-gap: 400px;
             --selector-width: 250px;
             --bg-color: #030005; 
             --card-bg: rgba(20, 10, 30, 0.6);
@@ -62,7 +62,6 @@
             background: transparent;
         }
 
-        /* Adjusted Layout Grid for Triple Column */
         .layout-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -152,10 +151,9 @@
             align-self: center;
         }
         
-        /* Side Panel Styling */
         .matchup-grid { 
             margin: 0 auto 25px auto;
-            grid-template-columns: 300px 1fr 300px; /* Fixed sides, fluid center */
+            grid-template-columns: 300px 1fr 300px;
         }
         
         .alliance-select-panel { 
@@ -172,7 +170,13 @@
         }
         
         .multi-select-box { 
-            width: 100%; height: 400px; background: rgba(0, 0, 0, 0.3); 
+            width: 100%; 
+            /* Dynamic Height Rules */
+            min-height: 50px;
+            max-height: 700px; 
+            height: auto; 
+            
+            background: rgba(0, 0, 0, 0.3); 
             border: 1px solid var(--border-color); border-radius: 12px; 
             color: var(--text-main); font-family: 'Inter', sans-serif; 
             font-size: 0.8rem; margin-top: 12px; outline: none !important; padding: 8px;
@@ -197,7 +201,6 @@
             color: white !important; 
         }
         
-        /* Central Comparison Area */
         .comparison-center-column {
             display: flex;
             flex-direction: column;
@@ -427,10 +430,16 @@
 
     function updateAllianceLists() {
         const sortedSIDs = Object.keys(masterAllianceMap).sort((a,b) => a - b);
+        const count = sortedSIDs.length;
+
         ['allianceStart', 'allianceEnd'].forEach(id => {
             const select = document.getElementById(id);
             const savedSelections = Array.from(select.selectedOptions).map(o => o.value);
             select.innerHTML = '';
+            
+            // Set dynamic size so it expands to the list length
+            select.setAttribute('size', count);
+
             sortedSIDs.forEach(sid => {
                 const opt = document.createElement('option');
                 opt.value = sid; 
