@@ -178,8 +178,17 @@ function setMode(mode) {
 
 async function init() {
     createMetricButtons();
-    const savedId = localStorage.getItem('alliance_user_id'); 
-    if (savedId) { document.getElementById('playerSearch').value = savedId; localStorage.removeItem('alliance_user_id'); }
+    
+    // Check URL for direct ID access (My Stats button)
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlId = urlParams.get('id');
+    
+    if (urlId) {
+        selectedPlayerId = urlId;
+    } else {
+        const savedId = localStorage.getItem('alliance_user_id'); 
+        if (savedId) { document.getElementById('playerSearch').value = savedId; }
+    }
 
     try {
         const res = await fetch('data/files.json');
@@ -281,7 +290,6 @@ async function loadDynamicAllKvks() {
 
         if (count > 0) {
             Object.keys(metrics).forEach(m => { 
-                // Using Math.round to ensure no decimals in averages
                 avgTotal[m] = Math.round(avgTotal[m] / count); 
                 avgGrowth[m] = Math.round(avgGrowth[m] / count); 
             });
@@ -428,16 +436,25 @@ function renderSoloMode(id, isGrowth) {
     setTimeout(() => updatePillPosition(currentViewMode, true), 10);
 }
 
-function exitSoloMode() { selectedPlayerId = null; renderDisplay(); }
+function exitSoloMode() { 
+    selectedPlayerId = null; 
+    // Clear the URL parameter so refreshing doesn't force you back into solo mode
+    const url = new URL(window.location);
+    url.searchParams.delete('id');
+    window.history.replaceState({}, '', url);
+    renderDisplay(); 
+}
 
 function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
+    const canvasElement = document.getElementById(canvasId);
+    if (!canvasElement) return;
+    const ctx = canvasElement.getContext('2d');
     
     const datasets = [{ 
         label: 'Player',
         data: timeline.map(entry => (entry ? entry[metricKey] : null)), 
         borderColor: '#9333ea', 
-        pointRadius: isSolo ? 6 : 4, // Larger points
+        pointRadius: isSolo ? 6 : 4,
         pointHoverRadius: isSolo ? 9 : 7,
         pointBackgroundColor: '#9333ea',
         tension: 0.3, 
@@ -451,8 +468,8 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         datasets.push({
             label: 'Alliance Average',
             data: avgSet.map(entry => (entry ? entry[metricKey] : null)),
-            borderColor: '#ffffff', // Solid White
-            pointRadius: isSolo ? 5 : 3, // Larger points
+            borderColor: '#ffffff',
+            pointRadius: isSolo ? 5 : 3,
             pointHoverRadius: isSolo ? 8 : 6,
             pointBackgroundColor: '#ffffff',
             tension: 0.3, 
