@@ -210,7 +210,6 @@ statusDiv.innerText = "ACCESS GRANTED";
                     setTimeout(() => { 
                         toggleModal();
                     }, 800);
-                    // Modal stays open for the user to see the dashboard buttons
 } else { 
 statusDiv.innerText = "INVALID LORD_ID"; 
 }
@@ -229,9 +228,10 @@ toggleModal();
 function goToMyStats() {
     const savedId = localStorage.getItem('alliance_user_id');
     if (savedId) {
-        window.location.href = `-I-Players.html?id=${savedId}`;
+        // Updated to use absolute URL with parameter injection
+        window.location.href = `https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html?id=${savedId}`;
     } else {
-        window.location.href = '-I-Players.html';
+        window.location.href = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html';
     }
 }
 
