@@ -53,18 +53,21 @@
             box-shadow: 0 0 40px rgba(147, 51, 234, 0.3);
             text-align: center;
         }
-        .modal-content h2 { color: var(--text-main); margin-bottom: 20px; font-size: 1.2rem; letter-spacing: 1px; }
+        .modal-content h2 { color: var(--text-main); margin-bottom: 20px; font-size: 1rem; letter-spacing: 1px; }
+        
+        .search-container { position: relative; margin-bottom: 15px; }
         .modal-input {
             width: 100%;
             background: #1a1a1a;
             border: 1px solid var(--border-color);
             color: white;
             padding: 12px;
-            margin-bottom: 15px;
             border-radius: 8px;
             box-sizing: border-box;
+            font-family: inherit;
         }
         .modal-input:focus { border-color: var(--accent-purple); outline: none; }
+        
         .save-btn {
             width: 100%;
             background: var(--accent-purple);
@@ -76,6 +79,8 @@
             cursor: pointer;
             text-transform: uppercase;
         }
+        .save-btn:disabled { opacity: 0.5; cursor: wait; }
+
         .close-btn {
             margin-top: 15px;
             display: block;
@@ -85,7 +90,14 @@
             cursor: pointer;
         }
 
-        /* EXISTING LAYOUT STYLES */
+        #search-status {
+            font-size: 0.7rem;
+            margin-top: 10px;
+            color: var(--accent-purple);
+            min-height: 15px;
+        }
+
+        /* LAYOUT STYLES */
         .home-container {
             display: flex;
             flex-direction: column;
@@ -156,10 +168,12 @@
 
     <div class="modal-overlay" id="profileModal">
         <div class="modal-content">
-            <h2 id="modal-title">GOVERNOR IDENTIFICATION</h2>
-            <input type="text" id="gov-name" class="modal-input" placeholder="Governor Name">
-            <input type="text" id="gov-id" class="modal-input" placeholder="Governor ID">
-            <button class="save-btn" onclick="saveProfile()">Update Protocol</button>
+            <h2 id="modal-title">PROTOCOL AUTHENTICATION</h2>
+            <div class="search-container">
+                <input type="text" id="universal-search" class="modal-input" placeholder="Enter Governor Name or ID">
+                <div id="search-status"></div>
+            </div>
+            <button id="auth-btn" class="save-btn" onclick="searchAndSave()">Verify Credentials</button>
             <span class="close-btn" onclick="toggleModal()">Discard Changes</span>
         </div>
     </div>
@@ -179,7 +193,7 @@
                     <div style="font-size: 1.5rem; margin-bottom: 15px;">📊</div>
                     <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2>
                     <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
-                        Execute deep-dive metrics and analysis for all registered players above 35 million power in the current KvK.
+                        Execute deep-dive metrics and analysis for all registered players.
                     </p>
                 </div>
                 <div class="hint-text">Enable Logs —></div>
@@ -191,7 +205,7 @@
                     <div style="font-size: 1.5rem; margin-bottom: 15px;">📈</div>
                     <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">-I- Player Tracker</h2>
                     <p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px; line-height: 1.5;">
-                        Tracking -I- players. Weekly trend visualization, growth deltas and alliance average comparision.
+                        Tracking -I- players. Weekly trend visualization and growth deltas.
                     </p>
                 </div>
                 <div class="hint-text">View Analytics —></div>
@@ -203,7 +217,7 @@
                     <div style="font-size: 1.5rem; margin-bottom: 15px;">⚔️</div>
                     <h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Matchup Tracker</h2>
                     <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px; line-height: 1.4;">
-                        Compare and see the difference in values between the alliances during the KVK.
+                        Compare and see the difference in values between alliances.
                     </p>
                 </div>
                 <div class="hint-text">Enter Dashboard —></div>
@@ -215,7 +229,7 @@
                     <div style="font-size: 1.5rem; margin-bottom: 15px;">🏆</div>
                     <h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Top Performances</h2>
                     <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px; line-height: 1.4;">
-                        Check the top players for each category overall or by alliance for this KvK.
+                        Check the top players for each category for this KvK.
                     </p>
                 </div>
                 <div class="hint-text">Check Scoreboard —></div>
@@ -228,52 +242,93 @@
     </div>
 
     <script>
+        const BASE_PATH = "IData/";
         const modal = document.getElementById('profileModal');
-        
-        // Open/Close logic
+        const statusDiv = document.getElementById('search-status');
+        const authBtn = document.getElementById('auth-btn');
+
         function toggleModal() {
             modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
         }
 
-        // Load saved data immediately
         window.onload = function() {
             const savedName = localStorage.getItem('alliance_user_name');
-            const savedID = localStorage.getItem('alliance_user_id');
-
             if (savedName) {
-                document.getElementById('gov-name').value = savedName;
-                document.getElementById('modal-title').innerText = "GOVERNOR: " + savedName.toUpperCase();
                 document.getElementById('profile-icon').innerText = savedName.charAt(0).toUpperCase();
-            }
-            if (savedID) {
-                document.getElementById('gov-id').value = savedID;
+                document.getElementById('modal-title').innerText = "GOVERNOR: " + savedName.toUpperCase();
             }
         };
 
-        function saveProfile() {
-            const name = document.getElementById('gov-name').value;
-            const id = document.getElementById('gov-id').value;
+        async function searchAndSave() {
+            const input = document.getElementById('universal-search').value.trim().toLowerCase();
+            if (!input) return;
 
-            if(name && id) {
-                localStorage.setItem('alliance_user_name', name);
-                localStorage.setItem('alliance_user_id', id);
+            authBtn.disabled = true;
+            statusDiv.innerText = "AUTHENTICATING...";
+
+            try {
+                // 1. Fetch files.json
+                const res = await fetch('data/files.json');
+                const fileListData = await res.json();
                 
-                // Visual update
-                document.getElementById('modal-title').innerText = "GOVERNOR: " + name.toUpperCase();
-                document.getElementById('profile-icon').innerText = name.charAt(0).toUpperCase();
+                // 2. Identify latest folder and file (mirroring your drilldown script logic)
+                const folders = fileListData.iDataFolders;
+                const latestFolderMeta = folders[folders.length - 1];
+                const fName = latestFolderMeta.name.replace('KVK', 'KvK');
+                const latestFileName = latestFolderMeta.files[latestFolderMeta.files.length - 1];
+                const fullPath = BASE_PATH + fName + "/" + latestFileName;
+
+                statusDiv.innerText = "SEARCHING LATEST LOGS...";
+
+                // 3. Fetch and Parse CSV
+                const csvResp = await fetch(fullPath);
+                const csvText = await csvResp.text();
                 
-                alert("Protocol Updated: Welcome, Gov. " + name);
-                toggleModal();
-            } else {
-                alert("Please initialize both ID and Name fields.");
+                const lines = csvText.split(/\r?\n/).filter(l => l.trim());
+                if (lines.length < 2) throw new Error("File empty");
+
+                const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                
+                // Find column indexes
+                const nameIdx = headers.findIndex(h => h.includes('name'));
+                const idIdx = headers.findIndex(h => h.includes('id') || h.includes('lord_id'));
+
+                let foundUser = null;
+
+                for (let i = 1; i < lines.length; i++) {
+                    const cells = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
+                    const rowName = cells[nameIdx] ? cells[nameIdx].toLowerCase() : "";
+                    const rowId = cells[idIdx] ? cells[idIdx].toLowerCase() : "";
+
+                    if (rowName === input || rowId === input) {
+                        foundUser = { name: cells[nameIdx], id: cells[idIdx] };
+                        break;
+                    }
+                }
+
+                if (foundUser) {
+                    localStorage.setItem('alliance_user_name', foundUser.name);
+                    localStorage.setItem('alliance_user_id', foundUser.id);
+                    
+                    document.getElementById('profile-icon').innerText = foundUser.name.charAt(0).toUpperCase();
+                    document.getElementById('modal-title').innerText = "GOVERNOR: " + foundUser.name.toUpperCase();
+                    
+                    statusDiv.innerText = "WELCOME, " + foundUser.name.toUpperCase();
+                    setTimeout(() => { toggleModal(); statusDiv.innerText = ""; }, 1500);
+                } else {
+                    statusDiv.innerText = "GOVERNOR NOT FOUND IN ACTIVE DATA.";
+                }
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerText = "CONNECTION ERROR: CHECK DATA NODES.";
+            } finally {
+                authBtn.disabled = false;
             }
         }
 
-        // Close modal if user clicks outside the box
         window.onclick = function(event) {
-            if (event.target == modal) {
-                toggleModal();
-            }
+            if (event.target == modal) toggleModal();
         }
     </script>
 </body>
