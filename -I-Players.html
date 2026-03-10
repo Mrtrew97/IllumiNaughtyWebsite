@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Intelligence Core // DRILLDOWN_V8.5</title>
+<title>Intelligence Core // DRILLDOWN_V8.6</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -92,7 +92,7 @@ z-index: 1; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
 </head>
 <body>
 
-<div class="loading-overlay" id="loader"><div class="loading-text">RE-CALIBRATING_AXIS_CHRONOLOGY...</div></div>
+<div class="loading-overlay" id="loader"><div class="loading-text">ENHANCING_NODES_AND_AVERAGES...</div></div>
 
 <div class="app-container">
 <div class="header-nav" id="headerNav" style="position: relative; z-index: 1000;">
@@ -237,7 +237,6 @@ async function loadDynamicAllKvks() {
     const latestSheetData = parseCSV(await latestResp.text());
     const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
-    // FIX: Set X-axis labels to the ENDSHEET filename (date) from each folder
     masterTimelineLabels = folders.map(f => f.files[f.files.length - 1].replace('.csv', ''));
     
     allianceAverages.timeline = new Array(folders.length).fill(null);
@@ -282,6 +281,7 @@ async function loadDynamicAllKvks() {
 
         if (count > 0) {
             Object.keys(metrics).forEach(m => { 
+                // Using Math.round to ensure no decimals in averages
                 avgTotal[m] = Math.round(avgTotal[m] / count); 
                 avgGrowth[m] = Math.round(avgGrowth[m] / count); 
             });
@@ -437,11 +437,12 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         label: 'Player',
         data: timeline.map(entry => (entry ? entry[metricKey] : null)), 
         borderColor: '#9333ea', 
-        pointRadius: isSolo ? 4 : 2, 
+        pointRadius: isSolo ? 6 : 4, // Larger points
+        pointHoverRadius: isSolo ? 9 : 7,
         pointBackgroundColor: '#9333ea',
         tension: 0.3, 
         fill: false, 
-        borderWidth: 2,
+        borderWidth: 2.5,
         spanGaps: true
     }];
 
@@ -450,12 +451,13 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         datasets.push({
             label: 'Alliance Average',
             data: avgSet.map(entry => (entry ? entry[metricKey] : null)),
-            borderColor: 'rgba(255, 255, 255, 0.4)', 
-            pointRadius: 0, 
+            borderColor: '#ffffff', // Solid White
+            pointRadius: isSolo ? 5 : 3, // Larger points
+            pointHoverRadius: isSolo ? 8 : 6,
+            pointBackgroundColor: '#ffffff',
             tension: 0.3, 
             fill: false, 
-            borderWidth: 1.5,
-            borderDash: [5, 5],
+            borderWidth: 2,
             spanGaps: true
         });
     }
@@ -465,7 +467,33 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         data: { labels: masterTimelineLabels, datasets: datasets },
         options: { 
             responsive: true, maintainAspectRatio: false, 
-            plugins: { legend: { display: false } }, 
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(20, 20, 25, 0.9)',
+                    titleColor: '#9333ea',
+                    bodyColor: '#fff',
+                    bodyFont: { weight: 'bold' },
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }, 
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            },
             scales: { 
                 x: { 
                     ticks: { 
