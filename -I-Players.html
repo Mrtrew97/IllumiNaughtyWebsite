@@ -92,7 +92,7 @@ z-index: 1; box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
 </head>
 <body>
 
-<div class="loading-overlay" id="loader"><div class="loading-text">CALCULATING_ALLIANCE_STREAMS...</div></div>
+<div class="loading-overlay" id="loader"><div class="loading-text">SYNCHRONIZING_TIMELINES...</div></div>
 
 <div class="app-container">
 <div class="header-nav" id="headerNav" style="position: relative; z-index: 1000;">
@@ -137,6 +137,7 @@ const MIN_SHEETS = 2;
 const targetServers = ["167", "509"];
 let weeklyData = {};
 let allianceAverages = { timeline: [], growthTimeline: [] };
+let masterTimelineLabels = []; // GLOBAL SYNC FOR X-AXIS
 let currentSortMetric = 'highest_power';
 let fileListData = {};
 let isAllKvksMode = false;
@@ -154,8 +155,7 @@ const metrics = {
 
 function toggleAllianceAverage() {
     showAllianceAvg = !showAllianceAvg;
-    const btns = document.querySelectorAll('.alliance-toggle');
-    btns.forEach(btn => btn.classList.toggle('active', showAllianceAvg));
+    document.querySelectorAll('.alliance-toggle').forEach(btn => btn.classList.toggle('active', showAllianceAvg));
     renderDisplay();
 }
 
@@ -176,19 +176,21 @@ renderDisplay();
 setTimeout(() => updatePillPosition(mode, !!selectedPlayerId), 10);
 }
 
-function goToDrilldown(lordId) {
-    localStorage.setItem('alliance_user_id', lordId);
-    window.location.href = '-I-Players.html';
+function printAllianceAverages() {
+    console.log("%c--- ALLIANCE AVERAGE SYNC REPORT ---", "color: #9333ea; font-weight: bold; font-size: 1.2rem;");
+    console.log("Labels Used:", masterTimelineLabels);
+    if (isAllKvksMode) {
+        console.log("Timeline (Totals):", allianceAverages.timeline);
+        console.log("Growth Timeline:", allianceAverages.growthTimeline);
+    } else {
+        console.table(allianceAverages.timeline);
+    }
 }
 
 async function init() {
 createMetricButtons();
-
 const savedId = localStorage.getItem('alliance_user_id'); 
-if (savedId) {
-    document.getElementById('playerSearch').value = savedId;
-    localStorage.removeItem('alliance_user_id'); 
-}
+if (savedId) { document.getElementById('playerSearch').value = savedId; localStorage.removeItem('alliance_user_id'); }
 
 try {
 const res = await fetch('data/files.json');
@@ -219,26 +221,13 @@ bar.appendChild(btn);
 });
 }
 
-// Helper function to print alliance stats to console
-function printAllianceAverages() {
-    console.log("%c--- ALLIANCE AVERAGE REPORT ---", "color: #9333ea; font-weight: bold; font-size: 1.2rem;");
-    if (isAllKvksMode) {
-        console.log("Mode: ALL KVKS (Total Stats)");
-        console.table(allianceAverages.timeline);
-        console.log("Mode: ALL KVKS (Growth Stats)");
-        console.table(allianceAverages.growthTimeline);
-    } else {
-        console.log(`Mode: SINGLE KVK (${document.getElementById('seasonFolder').value})`);
-        console.table(allianceAverages.timeline);
-    }
-}
-
 async function handleFolderChange() {
 const val = document.getElementById('seasonFolder');
 if (!val.value) return;
 document.getElementById('loader').style.display = 'flex';
 weeklyData = {}; 
 allianceAverages = { timeline: [], growthTimeline: [] };
+masterTimelineLabels = [];
 isAllKvksMode = (val.value === 'ALL_KVKS');
 document.getElementById('toggleWrapper').style.display = isAllKvksMode ? 'flex' : 'none';
 
@@ -247,8 +236,7 @@ if (isAllKvksMode) await loadDynamicAllKvks();
 else await loadSingleFolder(val.value);
 } catch (e) { console.error("Load Error:", e); }
 
-printAllianceAverages(); // Print stats whenever folder data changes
-
+printAllianceAverages();
 document.getElementById('loader').style.display = 'none';
 renderDisplay();
 if (isAllKvksMode) setTimeout(() => updatePillPosition(currentViewMode), 50);
@@ -262,25 +250,31 @@ const latestResp = await fetch(latestPath);
 const latestSheetData = parseCSV(await latestResp.text());
 const activeIds = Object.keys(latestSheetData).filter(id => parseInt(latestSheetData[id].highest_power) >= POWER_FLOOR);
 
+// Map Labels
+masterTimelineLabels = folders.map(f => f.name.replace('KVK', 'KvK'));
+
 for (const folderMeta of folders) {
     const fName = folderMeta.name.replace('KVK', 'KvK');
     const files = folderMeta.files;
     if (files.length < 2) continue;
     const [respOld, respNew] = await Promise.all([fetch(BASE_PATH + fName + "/" + files[0]), fetch(BASE_PATH + fName + "/" + files[files.length - 1])]);
-    if (!respOld.ok || !respNew.ok) continue;
     const [dataOld, dataNew] = [parseCSV(await respOld.text()), parseCSV(await respNew.text())];
 
     let avgTotal = { label: fName }; let avgGrowth = { label: fName }; let count = 0;
     Object.keys(metrics).forEach(m => { avgTotal[m] = 0; avgGrowth[m] = 0; });
 
     activeIds.forEach(id => {
-        if (!weeklyData[id]) weeklyData[id] = { starts: [], ends: [], timeline: [], growthTimeline: [], latestStats: latestSheetData[id], sheetCount: 0 };
+        if (!weeklyData[id]) {
+            weeklyData[id] = { timeline: new Array(folders.length).fill(null), growthTimeline: new Array(folders.length).fill(null), latestStats: latestSheetData[id], sheetCount: 0 };
+        }
+        const index = masterTimelineLabels.indexOf(fName);
         if (dataOld[id] && dataNew[id]) {
             let s = {}; Object.keys(metrics).forEach(m => s[m] = parseInt(dataOld[id][m]) || 0);
-            let e = { label: files[files.length - 1].replace('.csv','') }; 
-            Object.keys(metrics).forEach(m => e[m] = parseInt(dataNew[id][m]) || 0);
-            let g = { label: e.label }; Object.keys(metrics).forEach(m => g[m] = e[m] - s[m]);
-            weeklyData[id].timeline.push(e); weeklyData[id].growthTimeline.push(g); weeklyData[id].ends.push(e);
+            let e = { label: fName }; Object.keys(metrics).forEach(m => e[m] = parseInt(dataNew[id][m]) || 0);
+            let g = { label: fName }; Object.keys(metrics).forEach(m => g[m] = e[m] - s[m]);
+            
+            weeklyData[id].timeline[index] = e; 
+            weeklyData[id].growthTimeline[index] = g;
             weeklyData[id].sheetCount++;
             
             Object.keys(metrics).forEach(m => { avgTotal[m] += e[m]; avgGrowth[m] += g[m]; });
@@ -302,20 +296,27 @@ const latestResp = await fetch(pathPrefix + files[files.length - 1]);
 const latestData = parseCSV(await latestResp.text());
 const activeIds = Object.keys(latestData).filter(id => parseInt(latestData[id].highest_power) >= POWER_FLOOR);
 
-for (const f of files) {
+masterTimelineLabels = files.map(f => f.replace('.csv',''));
+
+for (let i=0; i < files.length; i++) {
+    const f = files[i];
     const r = await fetch(pathPrefix + f);
     const d = parseCSV(await r.text());
     let avgTotal = { label: f.replace('.csv','') }; let count = 0;
     Object.keys(metrics).forEach(m => avgTotal[m] = 0);
 
     activeIds.forEach(id => {
-        if (!d[id]) return;
-        if (!weeklyData[id]) weeklyData[id] = { timeline: [], growthTimeline: [], latestStats: latestData[id], sheetCount: 0 };
-        let e = { label: f.replace('.csv','') };
-        Object.keys(metrics).forEach(m => e[m] = parseInt(d[id][m]) || 0);
-        weeklyData[id].timeline.push(e); weeklyData[id].sheetCount++;
-        Object.keys(metrics).forEach(m => avgTotal[m] += e[m]);
-        count++;
+        if (!weeklyData[id]) {
+            weeklyData[id] = { timeline: new Array(files.length).fill(null), latestStats: latestData[id], sheetCount: 0 };
+        }
+        if (d[id]) {
+            let e = { label: f.replace('.csv','') };
+            Object.keys(metrics).forEach(m => e[m] = parseInt(d[id][m]) || 0);
+            weeklyData[id].timeline[i] = e;
+            weeklyData[id].sheetCount++;
+            Object.keys(metrics).forEach(m => avgTotal[m] += e[m]);
+            count++;
+        }
     });
     if(count > 0) {
         Object.keys(metrics).forEach(m => avgTotal[m] = Math.round(avgTotal[m] / count));
@@ -332,10 +333,10 @@ document.querySelectorAll('canvas').forEach(c => { const chart = Chart.getChart(
 grid.innerHTML = "";
 
 if (selectedPlayerId && weeklyData[selectedPlayerId]) {
-document.getElementById('controlsWrapper').style.display = 'none';
-document.getElementById('navActionContainer').innerHTML = `<button class="exit-btn" onclick="exitSoloMode()">← TERMINATE_VIEW</button>`;
-renderSoloMode(selectedPlayerId, isGrowth);
-return;
+    document.getElementById('controlsWrapper').style.display = 'none';
+    document.getElementById('navActionContainer').innerHTML = `<button class="exit-btn" onclick="exitSoloMode()">← TERMINATE_VIEW</button>`;
+    renderSoloMode(selectedPlayerId, isGrowth);
+    return;
 }
 
 document.getElementById('controlsWrapper').style.display = 'block';
@@ -344,7 +345,9 @@ document.getElementById('navActionContainer').innerHTML = `<button class="exit-b
 const sorted = Object.values(weeklyData).filter(p => p.sheetCount >= (isAllKvksMode ? 1 : MIN_SHEETS)).sort((a,b) => {
     const tA = isGrowth ? a.growthTimeline : a.timeline;
     const tB = isGrowth ? b.growthTimeline : b.timeline;
-    return (tB[tB.length - 1][currentSortMetric] || 0) - (tA[tA.length - 1][currentSortMetric] || 0);
+    const valA = [...tA].reverse().find(v => v !== null)?.[currentSortMetric] || 0;
+    const valB = [...tB].reverse().find(v => v !== null)?.[currentSortMetric] || 0;
+    return valB - valA;
 });
 
 const filtered = sorted.filter(data => {
@@ -358,8 +361,9 @@ document.getElementById('subjectCount').textContent = `ACTIVE_MEMBERS // ${filte
 filtered.forEach((data, index) => {
     const lordId = data.latestStats.lord_id || data.latestStats.id;
     const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-    let displayVal = activeTimeline[activeTimeline.length - 1][currentSortMetric];
-    let displayLabel = isGrowth ? `${metrics[currentSortMetric]} GAINED IN LAST KVK` : metrics[currentSortMetric];
+    const lastValid = [...activeTimeline].reverse().find(v => v !== null);
+    let displayVal = lastValid ? lastValid[currentSortMetric] : 0;
+    let displayLabel = isGrowth ? `${metrics[currentSortMetric]} GROWTH` : metrics[currentSortMetric];
 
     const card = document.createElement('div');
     card.className = `growth-card ${index < 3 ? 'glow-'+(index+1) : 'glow-purple'}`;
@@ -384,12 +388,10 @@ const grid = document.getElementById('mainGrid');
 const data = weeklyData[id];
 const header = document.createElement('div');
 header.className = 'solo-header';
-
 header.innerHTML = `
     <div class="stat-label" style="letter-spacing: 4px; color: var(--accent-purple); margin-bottom: 5px;">MEMBER_ANALYSIS</div>
     <h2>${data.latestStats.name}</h2>
     <div class="solo-label-id">ID: ${id}</div>
-    
     <div class="solo-controls-row">
         <div class="view-toggle-container" style="display: ${isAllKvksMode ? 'flex' : 'none'};">
             <div id="pill-bg-solo" class="pill-slider"></div>
@@ -406,13 +408,13 @@ grid.appendChild(header);
 
 Object.keys(metrics).forEach(mKey => {
     const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
-    let displayVal = isGrowth ? Math.max(...activeTimeline.map(t => t[mKey] || 0)) : activeTimeline[activeTimeline.length - 1][mKey] || 0;
-    let displayLabel = isGrowth ? (mKey === 'highest_power' ? "HIGHEST POWER GAINED IN A KVK" : `MOST ${metrics[mKey]} GOTTEN IN A KVK`) : metrics[mKey];
-
+    const lastValid = [...activeTimeline].reverse().find(v => v !== null);
+    let displayVal = lastValid ? lastValid[mKey] : 0;
+    
     const mini = document.createElement('div');
     mini.className = "growth-card glow-purple"; mini.style.cursor = "default";
     mini.innerHTML = `
-        <div class="stat-label">${displayLabel}</div>
+        <div class="stat-label">${metrics[mKey]}</div>
         <div class="stat-value" style="font-size:1.8rem;">${displayVal.toLocaleString()}</div>
         <div class="chart-container" style="height:180px;"><canvas id="solo-${mKey}"></canvas></div>
     `;
@@ -427,43 +429,44 @@ function exitSoloMode() { selectedPlayerId = null; renderDisplay(); }
 
 function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
     const ctx = document.getElementById(canvasId).getContext('2d');
+    
+    // Sync Player Data with Master Labels
+    const playerData = timeline.map(entry => (entry ? entry[metricKey] : null));
+
     const datasets = [{ 
         label: 'Player',
-        data: timeline.map(t => t[metricKey]), 
+        data: playerData, 
         borderColor: '#9333ea', 
-        pointRadius: isSolo ? 5 : 3, 
+        pointRadius: isSolo ? 5 : 2, 
         pointBackgroundColor: '#9333ea',
-        pointBorderColor: '#9333ea',
         tension: 0.3, 
         fill: false, 
-        borderWidth: 2 
+        borderWidth: 2,
+        spanGaps: true // Connects lines even if data is missing in the middle
     }];
 
     if (showAllianceAvg) {
         const avgSet = isGrowthMode ? allianceAverages.growthTimeline : allianceAverages.timeline;
-        if (avgSet && avgSet.length > 0) {
-            datasets.push({
-                label: 'Alliance Average',
-                data: avgSet.map(t => t[metricKey]),
-                borderColor: 'rgba(255, 255, 255, 0.8)', 
-                pointRadius: isSolo ? 5 : 3, 
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#ffffff',
-                tension: 0.3, 
-                fill: false, 
-                borderWidth: 2
-            });
-        }
+        datasets.push({
+            label: 'Alliance Average',
+            data: avgSet.map(t => t[metricKey]),
+            borderColor: 'rgba(255, 255, 255, 0.6)', 
+            pointRadius: 0, 
+            tension: 0.3, 
+            fill: false, 
+            borderWidth: 1.5,
+            borderDash: [5, 5]
+        });
     }
 
     new Chart(ctx, {
         type: 'line',
-        data: { labels: timeline.map(t => t.label), datasets: datasets },
+        data: { labels: masterTimelineLabels, datasets: datasets },
         options: { 
             responsive: true, maintainAspectRatio: false, 
             plugins: { legend: { display: false } }, 
             scales: { 
-                x: { ticks: { color: '#9d8ba1', font: { size: isSolo ? 10 : 8, weight: 'bold' }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
+                x: { ticks: { color: '#9d8ba1', font: { size: isSolo ? 9 : 7 }, maxRotation: 45, minRotation: 45 }, grid: { display: false } }, 
                 y: { display: false } 
             } 
         }
