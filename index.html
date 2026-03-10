@@ -112,34 +112,34 @@ text-transform: uppercase; margin-top: 20px;
 </div>
 
 <div class="home-container">
-<div class="brand-header">
-<div class="stat-label" style="color: var(--accent-purple);">System Status: Online</div>
-<h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 5px 0; color: var(--text-main);">
-ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// CORE</span>
-</h1>
-</div>
+    <div class="brand-header">
+    <div class="stat-label" style="color: var(--accent-purple);">System Status: Online</div>
+    <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 5px 0; color: var(--text-main);">
+    ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// CORE</span>
+    </h1>
+    </div>
 
-<div class="bento-grid">
-<a href="alliance-stats.html" class="bento-card">
-<div><div style="font-size: 1.5rem; margin-bottom: 15px;">📊</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Deep-dive metrics for registered players.</p></div>
-<div class="hint-text">Enable Logs —></div>
-</a>
-<a href="-I-Players.html" class="bento-card">
-<div><div style="font-size: 1.5rem; margin-bottom: 15px;">📈</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">-I- Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Weekly trends and growth deltas.</p></div>
-<div class="hint-text">View Analytics —></div>
-</a>
-<a href="MatchupTracker.html" class="bento-card">
-<div><div style="font-size: 1.5rem; margin-bottom: 15px;">⚔️</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Matchup Tracker</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Compare alliance values.</p></div>
-<div class="hint-text">Enter Dashboard —></div>
-</a>
-<a href="TopPerf.html" class="bento-card">
-<div><div style="font-size: 1.5rem; margin-bottom: 15px;">🏆</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Top Performances</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Check top player categories.</p></div>
-<div class="hint-text">Check Scoreboard —></div>
-</a>
-<div class="home-footer" id="main-footer">
-<span class="status-dot"></span> SYSTEM ONLINE // MADE BY DADREW
-</div>
-</div>
+    <div class="bento-grid">
+    <a href="alliance-stats.html" class="bento-card">
+    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">📊</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Deep-dive metrics for registered players.</p></div>
+    <div class="hint-text">Enable Logs —></div>
+    </a>
+    <a href="-I-Players.html" class="bento-card">
+    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">📈</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">-I- Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Weekly trends and growth deltas.</p></div>
+    <div class="hint-text">View Analytics —></div>
+    </a>
+    <a href="MatchupTracker.html" class="bento-card">
+    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">⚔️</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Matchup Tracker</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Compare alliance values.</p></div>
+    <div class="hint-text">Enter Dashboard —></div>
+    </a>
+    <a href="TopPerf.html" class="bento-card">
+    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">🏆</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Top Performances</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Check top player categories.</p></div>
+    <div class="hint-text">Check Scoreboard —></div>
+    </a>
+    <div class="home-footer" id="main-footer">
+    <span class="status-dot"></span> SYSTEM ONLINE // MADE BY DADREW
+    </div>
+    </div>
 </div>
 
 <script>
@@ -147,6 +147,12 @@ const modal = document.getElementById('profileModal');
 const statusDiv = document.getElementById('search-status');
 const authSection = document.getElementById('auth-section');
 const controlSection = document.getElementById('control-section');
+
+// Utility to parse CSV line correctly handling quotes and commas
+function parseCSVLine(line) {
+    const regex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+    return line.split(regex).map(cell => cell.trim().replace(/^"|"$/g, ''));
+}
 
 function toggleModal() { 
     modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex'; 
@@ -191,34 +197,46 @@ async function verifyLordId() {
         const res = await fetch('data/files.json');
         const fileListData = await res.json();
 
+        // Newest for Name, Oldest for Tag
         const sortedFiles = [...fileListData.mainDataFiles].sort((a, b) => parseDate(b) - parseDate(a));
         const newestFile = sortedFiles[0];
         const oldestFile = sortedFiles[sortedFiles.length - 1];
 
+        // 1. Find User Name from newest file
         const csvResp = await fetch(newestFile);
         const csvText = await csvResp.text();
         const lines = csvText.split(/\r?\n/).filter(l => l.trim());
-        const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        const idIdx = headers.findIndex(h => h === 'lord_id' || h === 'id');
-        const nameIdx = headers.findIndex(h => h === 'name');
+        const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+        
+        const idIdx = headers.indexOf('lord_id') !== -1 ? headers.indexOf('lord_id') : headers.indexOf('id');
+        const nameIdx = headers.indexOf('name');
 
         let found = null;
         for (let i = 1; i < lines.length; i++) {
-            const cells = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-            if (cells[idIdx] === inputId) { found = { name: cells[nameIdx], id: cells[idIdx] }; break; }
+            const cells = parseCSVLine(lines[i]);
+            if (cells[idIdx] === inputId) {
+                found = { name: cells[nameIdx], id: cells[idIdx] };
+                break;
+            }
         }
 
         if (found) {
+            // 2. Find Alliance Tag from oldest file
             const oldCsvResp = await fetch(oldestFile);
             const oldCsvText = await oldCsvResp.text();
             const oldLines = oldCsvText.split(/\r?\n/).filter(l => l.trim());
-            const oldHeaders = oldLines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            const tagIdx = oldHeaders.findIndex(h => h === 'alliance_tag');
+            const oldHeaders = parseCSVLine(oldLines[0]).map(h => h.toLowerCase());
+            
+            const oldIdIdx = oldHeaders.indexOf('lord_id') !== -1 ? oldHeaders.indexOf('lord_id') : oldHeaders.indexOf('id');
+            const tagIdx = oldHeaders.indexOf('alliance_tag');
             
             let tagFound = "---";
             for (let j = 1; j < oldLines.length; j++) {
-                const oldCells = oldLines[j].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.trim().replace(/^"|"$/g, ''));
-                if (oldCells[idIdx] === inputId) { tagFound = oldCells[tagIdx]; break; }
+                const oldCells = parseCSVLine(oldLines[j]);
+                if (oldCells[oldIdIdx] === inputId) {
+                    tagFound = oldCells[tagIdx] || "---";
+                    break;
+                }
             }
 
             localStorage.setItem('alliance_user_name', found.name);
