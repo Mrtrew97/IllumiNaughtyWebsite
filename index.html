@@ -144,7 +144,6 @@ ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// COR
 </div>
 
 <script>
-const BASE_PATH = "IData/";
 const modal = document.getElementById('profileModal');
 const statusDiv = document.getElementById('search-status');
 const authSection = document.getElementById('auth-section');
@@ -153,6 +152,13 @@ const controlSection = document.getElementById('control-section');
 function toggleModal() { 
 modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex'; 
 if (modal.style.display === 'none') statusDiv.innerText = "";
+}
+
+function parseDate(f) { 
+    // Extracts date from path like "data/10-01-2026.csv"
+    const fileName = f.split('/').pop();
+    const p = fileName.replace('.csv','').split('-'); 
+    return new Date(p[2], p[1]-1, p[0]); 
 }
 
 function updateUI() {
@@ -183,11 +189,11 @@ statusDiv.innerText = "QUERYING_DATABASE...";
 try {
 const res = await fetch('data/files.json');
 const fileListData = await res.json();
-const latestFolder = fileListData.iDataFolders[fileListData.iDataFolders.length - 1];
-const folderName = latestFolder.name.replace('KVK', 'KvK');
-const fullPath = BASE_PATH + folderName + "/" + latestFolder.files[latestFolder.files.length - 1];
 
-const csvResp = await fetch(fullPath);
+// Get the newest file from mainDataFiles (data/ folder)
+const newestFile = [...fileListData.mainDataFiles].sort((a, b) => parseDate(b) - parseDate(a))[0];
+
+const csvResp = await fetch(newestFile);
 const csvText = await csvResp.text();
 const lines = csvText.split(/\r?\n/).filter(l => l.trim());
 const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/^"|"$/g, ''));
@@ -222,20 +228,14 @@ toggleModal();
 
 function goToMyStats() {
     const savedId = localStorage.getItem('alliance_user_id');
-    if (savedId) {
-        window.location.href = `https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html?id=${savedId}`;
-    } else {
-        window.location.href = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html';
-    }
+    const url = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html';
+    window.location.href = savedId ? `${url}?id=${savedId}` : url;
 }
 
 function goToKvKStats() {
     const savedId = localStorage.getItem('alliance_user_id');
-    if (savedId) {
-        window.location.href = `https://mrtrew97.github.io/IllumiNaughtyWebsite/alliance-stats.html?id=${savedId}`;
-    } else {
-        window.location.href = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/alliance-stats.html';
-    }
+    const url = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/alliance-stats.html';
+    window.location.href = savedId ? `${url}?id=${savedId}` : url;
 }
 
 window.addEventListener('storage', updateUI);
