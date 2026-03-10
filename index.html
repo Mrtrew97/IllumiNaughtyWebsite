@@ -83,6 +83,20 @@ text-transform: uppercase; margin-top: 20px;
 .home-footer { grid-column: span 2; padding: 20px; border: 1px dashed var(--border-color); border-radius: 16px; text-align: center; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; font-weight: 800; background: rgba(147, 51, 234, 0.03); }
 .status-dot { width: 8px; height: 8px; background: var(--positive); border-radius: 50%; display: inline-block; margin-right: 10px; }
 .hidden { display: none !important; }
+
+/* LOGO STYLE */
+.fixed-logo {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px; /* Adjust size as needed */
+    height: auto;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+    z-index: 99;
+    pointer-events: none; /* Allows clicks to pass through to elements behind if needed */
+}
+.fixed-logo:hover { opacity: 1; }
 </style>
 </head>
 <body class="home-layout">
@@ -92,7 +106,7 @@ text-transform: uppercase; margin-top: 20px;
 <div class="modal-overlay" id="profileModal" onclick="toggleModal()">
 <div class="modal-content" onclick="event.stopPropagation()">
     <h2 id="modal-title">WELCOME TO ILLUMINAUGHTY</h2>
-    <div id="modal-subtitle" class="sub-tag">SYSTEM_ACCESS_INPUT</div>
+    <div id="modal-subtitle" class="sub-tag">SYSTEM_ACCESS_REQUIRED</div>
 
     <div id="auth-section">
         <input type="text" id="id-search" class="modal-input" placeholder="ENTER LORD_ID" onkeydown="if(event.key==='Enter') verifyLordId()">
@@ -142,6 +156,8 @@ text-transform: uppercase; margin-top: 20px;
     </div>
 </div>
 
+<img src="https://raw.githubusercontent.com/Mrtrew97/IllumiNaughtyWebsite/main/dadrew%20logo.png" alt="Dadrew Logo" class="fixed-logo">
+
 <script>
 const modal = document.getElementById('profileModal');
 const statusDiv = document.getElementById('search-status');
@@ -175,7 +191,6 @@ function updateUI() {
         document.getElementById('modal-title').innerText = savedName.toUpperCase();
         document.getElementById('modal-subtitle').innerText = "FROM [" + (savedTag || "---") + "]";
         
-        // SERVER ACCESS CHECK
         const oldKvkBtn = document.getElementById('btn-old-kvk');
         if (savedServer === "509" || savedServer === "167") {
             oldKvkBtn.classList.remove('hidden');
