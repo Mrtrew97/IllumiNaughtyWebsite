@@ -181,10 +181,11 @@
             font-size: 0.8rem; 
             margin-top: 12px; 
             outline: none !important; 
-            padding: 12px 8px; /* Extra vertical padding to avoid cutting off items */
-            overflow: hidden; /* Specifically hiding scrollbars */
+            padding: 12px 8px 20px 8px; /* Added 20px bottom padding */
+            overflow: hidden; 
             appearance: none;
             text-align: center;
+            box-sizing: content-box; /* Ensures padding is added on top of the calculated size */
         }
         
         .multi-select-box:focus { border: 1px solid var(--accent-purple); }
@@ -438,7 +439,7 @@
             const savedSelections = Array.from(select.selectedOptions).map(o => o.value);
             select.innerHTML = '';
             
-            // Set size to exactly match the length to avoid scrollbars
+            // Set size to count to show all items
             select.size = count;
 
             sortedSIDs.forEach(sid => {
