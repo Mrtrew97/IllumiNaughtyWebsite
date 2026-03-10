@@ -138,14 +138,6 @@
             };
             bar.appendChild(btn);
         });
-
-        // INTEGRATED: Retrieval Logic
-        const savedId = localStorage.getItem('alliance_user_id'); 
-        if (savedId) { 
-            document.getElementById('playerSearch').value = savedId; 
-            localStorage.removeItem('alliance_user_id'); 
-        }
-
         scanFiles();
     }
 
@@ -155,16 +147,14 @@
             const response = await fetch('data/files.json');
             fileListData = await response.json();
             
-            // Sort to find the absolute oldest file
             let sortedPaths = [...fileListData.mainDataFiles].sort((a, b) => {
                 return parseDate(a.split('/').pop()) - parseDate(b.split('/').pop());
             });
 
-            const oldestFilePath = sortedPaths[0]; // This is the first recorded date
+            const oldestFilePath = sortedPaths[0]; 
             const oldestRes = await fetch(oldestFilePath);
             const oldestCSV = await oldestRes.text();
             
-            // BUILD ALLIANCE MAP ONLY ONCE FROM THE OLDEST FILE
             updateAllianceList(oldestCSV);
 
             let displayFiles = [...fileListData.mainDataFiles].sort((a, b) => parseDate(b.split('/').pop()) - parseDate(a.split('/').pop()));
@@ -207,7 +197,6 @@
             if (selectedServer !== "all") filteredRaw = filteredRaw.filter(row => row.home_server === selectedServer);
 
             currentTableData = filteredRaw.map(row => {
-                // Strictly use the map built from the oldest file
                 row.alliance_tag = allianceTagMap[row.home_server] || '-';
                 return { ...row, _isDiff: false };
             });
