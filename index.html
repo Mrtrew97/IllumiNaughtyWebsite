@@ -205,11 +205,7 @@ localStorage.setItem('alliance_user_name', found.name);
 localStorage.setItem('alliance_user_id', found.id);
 updateUI();
 statusDiv.innerText = "ACCESS GRANTED";
-                    
-                    // Close modal automatically after success
-                    setTimeout(() => { 
-                        toggleModal();
-                    }, 800);
+// Auto-close removed to keep modal open for session interaction
 } else { 
 statusDiv.innerText = "INVALID LORD_ID"; 
 }
@@ -222,20 +218,18 @@ function logout() {
 localStorage.removeItem('alliance_user_name');
 localStorage.removeItem('alliance_user_id');
 updateUI();
-toggleModal();
+toggleModal(); // Closes modal after terminating session
 }
 
 function goToMyStats() {
     const savedId = localStorage.getItem('alliance_user_id');
     if (savedId) {
-        // Updated to use absolute URL with parameter injection
         window.location.href = `https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html?id=${savedId}`;
     } else {
         window.location.href = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html';
     }
 }
 
-// Listen for storage changes (sync across tabs)
 window.addEventListener('storage', updateUI);
 </script>
 </body>
