@@ -188,7 +188,16 @@ opt.value = folder.name; opt.textContent = cleanName(folder.name);
 selector.appendChild(opt);
 });
 selector.value = "ALL_KVKS";
-handleFolderChange();
+await handleFolderChange();
+
+// --- NEW AUTO-FILL LOGIC ---
+const savedId = localStorage.getItem('alliance_user_id');
+if (savedId) {
+    document.getElementById('playerSearch').value = savedId;
+    renderDisplay();
+}
+// ---------------------------
+
 } catch(e) { console.error("Init failed", e); }
 }
 
