@@ -6,97 +6,121 @@
 <title>Alliance Dashboard // CORE</title>
 <link rel="stylesheet" href="styles.css">
 <style>
+/* GLOBAL SCROLL LOCK */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevents ghost scrolling */
+    background: #080808;
+}
+
 /* PROFILE TRIGGER PILL BUTTON */
 .profile-trigger {
-position: fixed; top: 20px; right: 20px;
-padding: 8px 20px; border-radius: 50px;
-background: rgba(147, 51, 234, 0.1);
-border: 1px solid var(--accent-purple);
-color: var(--text-main);
-display: flex; align-items: center; justify-content: center;
-cursor: pointer; z-index: 100; transition: all 0.3s ease;
-font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;
-box-shadow: 0 0 15px rgba(147, 51, 234, 0.2);
-text-transform: uppercase;
+    position: fixed; top: 20px; right: 20px;
+    padding: 8px 20px; border-radius: 50px;
+    background: rgba(147, 51, 234, 0.1);
+    border: 1px solid var(--accent-purple);
+    color: var(--text-main);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 100; transition: all 0.3s ease;
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 1px;
+    box-shadow: 0 0 15px rgba(147, 51, 234, 0.2);
+    text-transform: uppercase;
 }
 .profile-trigger:hover { background: var(--accent-purple); transform: translateY(-2px); }
 
 /* MODAL STYLES */
 .modal-overlay {
-display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
-z-index: 1000; justify-content: center; align-items: center;
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+    z-index: 1000; justify-content: center; align-items: center;
 }
 .modal-content {
-background: #0d0d0d; border: 1px solid var(--accent-purple);
-padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 350px;
-box-shadow: 0 0 40px rgba(147, 51, 234, 0.3); text-align: center;
+    background: #0d0d0d; border: 1px solid var(--accent-purple);
+    padding: 40px 30px; border-radius: 16px; width: 90%; max-width: 350px;
+    box-shadow: 0 0 40px rgba(147, 51, 234, 0.3); text-align: center;
 }
 .modal-content h2 { color: var(--text-main); margin-bottom: 5px; font-size: 1.2rem; letter-spacing: 1px; font-weight: 900; }
 .modal-content .sub-tag { color: var(--accent-purple); font-size: 0.7rem; font-weight: 800; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
 
 .modal-input {
-width: 100%; background: #1a1a1a; border: 1px solid var(--border-color);
-color: white; padding: 12px; border-radius: 8px; box-sizing: border-box;
-text-align: center; margin-bottom: 15px; font-family: inherit;
+    width: 100%; background: #1a1a1a; border: 1px solid var(--border-color);
+    color: white; padding: 12px; border-radius: 8px; box-sizing: border-box;
+    text-align: center; margin-bottom: 15px; font-family: inherit;
 }
 
 .save-btn {
-width: 100%; background: var(--accent-purple); color: white;
-border: none; padding: 12px; border-radius: 8px; font-weight: 900;
-cursor: pointer; text-transform: uppercase; margin-bottom: 10px;
+    width: 100%; background: var(--accent-purple); color: white;
+    border: none; padding: 12px; border-radius: 8px; font-weight: 900;
+    cursor: pointer; text-transform: uppercase; margin-bottom: 10px;
 }
 
-.control-grid {
-display: grid;
-grid-template-columns: 1fr;
-gap: 12px;
-margin-bottom: 10px;
-}
+.control-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 10px; }
 
 .action-btn {
-width: 100%; background: rgba(255, 255, 255, 0.03); color: white;
-border: 1px solid var(--border-color); padding: 14px; border-radius: 8px; 
-font-weight: 800; cursor: pointer; text-transform: uppercase;
-font-size: 0.7rem; transition: all 0.2s ease;
-letter-spacing: 1px;
+    width: 100%; background: rgba(255, 255, 255, 0.03); color: white;
+    border: 1px solid var(--border-color); padding: 14px; border-radius: 8px; 
+    font-weight: 800; cursor: pointer; text-transform: uppercase;
+    font-size: 0.7rem; transition: all 0.2s ease; letter-spacing: 1px;
 }
-.action-btn:hover { 
-background: rgba(147, 51, 234, 0.1); 
-border-color: var(--accent-purple);
-transform: scale(1.02);
-}
+.action-btn:hover { background: rgba(147, 51, 234, 0.1); border-color: var(--accent-purple); transform: scale(1.02); }
 
 .logout-btn {
-width: 100%; background: transparent; color: #ef4444;
-border: 1px solid #ef4444; padding: 10px; border-radius: 8px;
-font-size: 0.7rem; font-weight: 900; cursor: pointer;
-text-transform: uppercase; margin-top: 20px;
+    width: 100%; background: transparent; color: #ef4444;
+    border: 1px solid #ef4444; padding: 10px; border-radius: 8px;
+    font-size: 0.7rem; font-weight: 900; cursor: pointer;
+    text-transform: uppercase; margin-top: 20px;
 }
 
 #search-status { font-size: 0.65rem; margin-top: 15px; color: var(--accent-purple); font-weight: 800; text-transform: uppercase; min-height: 15px; }
 
-.home-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-.bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; max-width: 900px; margin-top: 40px; }
-.bento-card { text-decoration: none; min-height: 220px; display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s ease; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; }
-.bento-card:hover { transform: translateY(-5px); border-color: var(--accent-purple); }
-.home-footer { grid-column: span 2; padding: 20px; border: 1px dashed var(--border-color); border-radius: 16px; text-align: center; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; font-weight: 800; background: rgba(147, 51, 234, 0.03); }
-.status-dot { width: 8px; height: 8px; background: var(--positive); border-radius: 50%; display: inline-block; margin-right: 10px; }
+/* MAIN LAYOUT */
+.home-container { 
+    display: flex; flex-direction: column; align-items: center; justify-content: center; 
+    height: 100vh; width: 100vw; padding: 20px; box-sizing: border-box; 
+}
+
+.brand-header { text-align: center; }
+
+.bento-grid { 
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; 
+    width: 100%; max-width: 800px; margin-top: 30px; 
+}
+
+/* CENTERED BENTO CARDS */
+.bento-card { 
+    text-decoration: none; min-height: 180px; 
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: 0.3s ease; background: rgba(255, 255, 255, 0.02); 
+    border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; 
+    text-align: center;
+}
+.bento-card:hover { transform: translateY(-5px); border-color: var(--accent-purple); background: rgba(147, 51, 234, 0.05); }
+
+/* FOOTER CENTERED */
+.home-footer { 
+    grid-column: span 2; padding: 20px; border: 1px dashed var(--border-color); 
+    border-radius: 16px; text-align: center; font-size: 0.75rem; color: var(--text-dim); 
+    letter-spacing: 3px; font-weight: 900; background: rgba(147, 51, 234, 0.03); 
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+}
+
+.status-dot { 
+    width: 10px; height: 10px; background: #22c55e; border-radius: 50%; 
+    display: inline-block; box-shadow: 0 0 10px #22c55e;
+}
+
 .hidden { display: none !important; }
 
-/* LOGO STYLE */
+/* LOGO POSITIONING */
 .fixed-logo {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 180px; /* Adjust size as needed */
-    height: auto;
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-    z-index: 99;
-    pointer-events: none; /* Allows clicks to pass through to elements behind if needed */
+    position: fixed; bottom: 20px; right: 20px;
+    width: 180px; height: auto;
+    opacity: 0.7; transition: opacity 0.3s ease;
+    z-index: 99; pointer-events: none;
 }
-.fixed-logo:hover { opacity: 1; }
 </style>
 </head>
 <body class="home-layout">
@@ -127,32 +151,37 @@ text-transform: uppercase; margin-top: 20px;
 
 <div class="home-container">
     <div class="brand-header">
-    <div class="stat-label" style="color: var(--accent-purple);">System Status: Online</div>
-    <h1 style="font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; margin: 5px 0; color: var(--text-main);">
-    ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// CORE</span>
-    </h1>
+        <div class="stat-label" style="color: var(--accent-purple); text-transform: uppercase; letter-spacing: 2px; font-size: 0.7rem; font-weight: 800;">Core_Interface_V2.6</div>
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 10px 0; color: var(--text-main);">
+        ALLIANCE PROTOCOL <span style="color: var(--text-dim); font-weight: 200;">// CORE</span>
+        </h1>
     </div>
 
     <div class="bento-grid">
-    <a href="alliance-stats.html" class="bento-card">
-    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">📊</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Deep-dive metrics for registered players.</p></div>
-    <div class="hint-text">Enable Logs —></div>
-    </a>
-    <a href="-I-Players.html" class="bento-card">
-    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">📈</div><h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">-I- Player Tracker</h2><p style="color: var(--text-dim); font-size: 0.9rem; margin-top: 10px;">Weekly trends and growth deltas.</p></div>
-    <div class="hint-text">View Analytics —></div>
-    </a>
-    <a href="MatchupTracker.html" class="bento-card">
-    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">⚔️</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Matchup Tracker</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Compare alliance values.</p></div>
-    <div class="hint-text">Enter Dashboard —></div>
-    </a>
-    <a href="TopPerf.html" class="bento-card">
-    <div><div style="font-size: 1.5rem; margin-bottom: 15px;">🏆</div><h2 style="margin: 0; font-size: 1.2rem; color: var(--text-title);">Top Performances</h2><p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 10px;">Check top player categories.</p></div>
-    <div class="hint-text">Check Scoreboard —></div>
-    </a>
-    <div class="home-footer" id="main-footer">
-    <span class="status-dot"></span> SYSTEM ONLINE
-    </div>
+        <a href="alliance-stats.html" class="bento-card">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📊</div>
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">KvK Player Tracker</h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 8px; max-width: 200px;">Deep-dive metrics for registered players.</p>
+        </a>
+        <a href="-I-Players.html" class="bento-card">
+            <div style="font-size: 2rem; margin-bottom: 10px;">📈</div>
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">-I- Player Tracker</h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 8px; max-width: 200px;">Weekly trends and growth deltas.</p>
+        </a>
+        <a href="MatchupTracker.html" class="bento-card">
+            <div style="font-size: 2rem; margin-bottom: 10px;">⚔️</div>
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">Matchup Tracker</h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 8px; max-width: 200px;">Compare alliance values.</p>
+        </a>
+        <a href="TopPerf.html" class="bento-card">
+            <div style="font-size: 2rem; margin-bottom: 10px;">🏆</div>
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--text-title);">Top Performances</h2>
+            <p style="color: var(--text-dim); font-size: 0.85rem; margin-top: 8px; max-width: 200px;">Check top player categories.</p>
+        </a>
+        
+        <div class="home-footer">
+            <span class="status-dot"></span> SYSTEM ONLINE
+        </div>
     </div>
 </div>
 
@@ -182,7 +211,6 @@ function parseDate(f) {
 
 function updateUI() {
     const savedName = localStorage.getItem('alliance_user_name');
-    const savedID = localStorage.getItem('alliance_user_id');
     const savedTag = localStorage.getItem('alliance_user_tag');
     const savedServer = localStorage.getItem('alliance_user_server');
 
@@ -200,14 +228,12 @@ function updateUI() {
 
         authSection.style.display = "none";
         controlSection.style.display = "block";
-        document.getElementById('main-footer').innerHTML = `<span class="status-dot"></span> GOV_AUTH: ${savedName} [ID: ${savedID}]`;
     } else {
         document.getElementById('profile-icon').innerText = "INPUT ID";
         document.getElementById('modal-title').innerText = "WELCOME TO ILLUMINAUGHTY";
         document.getElementById('modal-subtitle').innerText = "SYSTEM_ACCESS_REQUIRED";
         authSection.style.display = "block";
         controlSection.style.display = "none";
-        document.getElementById('main-footer').innerHTML = `<span class="status-dot"></span> SYSTEM ONLINE // MADE BY DADREW`;
     }
 }
 
@@ -220,7 +246,6 @@ async function verifyLordId() {
     try {
         const res = await fetch('data/files.json');
         const fileListData = await res.json();
-
         const sortedFiles = [...fileListData.mainDataFiles].sort((a, b) => parseDate(b) - parseDate(a));
         const newestFile = sortedFiles[0];
         const oldestFile = sortedFiles[sortedFiles.length - 1];
@@ -229,7 +254,6 @@ async function verifyLordId() {
         const csvText = await csvResp.text();
         const lines = csvText.split(/\r?\n/).filter(l => l.trim());
         const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
-        
         const idIdx = headers.indexOf('lord_id') !== -1 ? headers.indexOf('lord_id') : headers.indexOf('id');
         const nameIdx = headers.indexOf('name');
 
@@ -247,8 +271,6 @@ async function verifyLordId() {
             const oldCsvText = await oldCsvResp.text();
             const oldLines = oldCsvText.split(/\r?\n/).filter(l => l.trim());
             const oldHeaders = parseCSVLine(oldLines[0]).map(h => h.toLowerCase());
-            
-            const oldIdIdx = oldHeaders.indexOf('lord_id') !== -1 ? oldHeaders.indexOf('lord_id') : oldHeaders.indexOf('id');
             const tagIdx = oldHeaders.indexOf('alliance_tag');
             const serverIdx = oldHeaders.indexOf('home_server');
             
@@ -256,7 +278,7 @@ async function verifyLordId() {
             let serverFound = "---";
             for (let j = 1; j < oldLines.length; j++) {
                 const oldCells = parseCSVLine(oldLines[j]);
-                if (oldCells[oldIdIdx] === inputId) {
+                if (oldCells[idIdx] === inputId) {
                     tagFound = oldCells[tagIdx] || "---";
                     serverFound = oldCells[serverIdx] || "---";
                     break;
@@ -288,17 +310,15 @@ function logout() {
 
 function goToMyStats() {
     const savedId = localStorage.getItem('alliance_user_id');
-    const url = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/-I-Players.html';
+    const url = '-I-Players.html';
     window.location.href = savedId ? `${url}?id=${savedId}` : url;
 }
 
 function goToKvKStats() {
     const savedId = localStorage.getItem('alliance_user_id');
-    const url = 'https://mrtrew97.github.io/IllumiNaughtyWebsite/alliance-stats.html';
+    const url = 'alliance-stats.html';
     window.location.href = savedId ? `${url}?id=${savedId}` : url;
 }
-
-window.addEventListener('storage', updateUI);
 </script>
 </body>
 </html>
