@@ -178,13 +178,8 @@ function setMode(mode) {
 
 async function init() {
     createMetricButtons();
-    
-    // INTEGRATED: Retrieval Logic
     const savedId = localStorage.getItem('alliance_user_id'); 
-    if (savedId) { 
-        document.getElementById('playerSearch').value = savedId; 
-        localStorage.removeItem('alliance_user_id'); 
-    }
+    if (savedId) { document.getElementById('playerSearch').value = savedId; localStorage.removeItem('alliance_user_id'); }
 
     try {
         const res = await fetch('data/files.json');
@@ -286,6 +281,7 @@ async function loadDynamicAllKvks() {
 
         if (count > 0) {
             Object.keys(metrics).forEach(m => { 
+                // Using Math.round to ensure no decimals in averages
                 avgTotal[m] = Math.round(avgTotal[m] / count); 
                 avgGrowth[m] = Math.round(avgGrowth[m] / count); 
             });
@@ -357,7 +353,6 @@ function renderDisplay() {
         return valB - valA;
     });
 
-    // INTEGRATED: Search Filter Logic
     const filtered = sorted.filter(data => {
         const lordId = (data.latestStats.lord_id || data.latestStats.id || "").toString().toLowerCase();
         const name = (data.latestStats.name || "").toString().toLowerCase();
@@ -442,7 +437,7 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         label: 'Player',
         data: timeline.map(entry => (entry ? entry[metricKey] : null)), 
         borderColor: '#9333ea', 
-        pointRadius: isSolo ? 6 : 4, 
+        pointRadius: isSolo ? 6 : 4, // Larger points
         pointHoverRadius: isSolo ? 9 : 7,
         pointBackgroundColor: '#9333ea',
         tension: 0.3, 
@@ -456,8 +451,8 @@ function createChart(canvasId, timeline, metricKey, isSolo, isGrowthMode) {
         datasets.push({
             label: 'Alliance Average',
             data: avgSet.map(entry => (entry ? entry[metricKey] : null)),
-            borderColor: '#ffffff', 
-            pointRadius: isSolo ? 5 : 3, 
+            borderColor: '#ffffff', // Solid White
+            pointRadius: isSolo ? 5 : 3, // Larger points
             pointHoverRadius: isSolo ? 8 : 6,
             pointBackgroundColor: '#ffffff',
             tension: 0.3, 
