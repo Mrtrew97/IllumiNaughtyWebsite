@@ -5,12 +5,6 @@ const CONFIG = {
     ],
     "iDataFolders": [
         {
-            "name": "01 - Current KVK",
-            "files": [
-                "IData/01 - Current KVK/12-03-2026.csv"
-            ]
-        },
-        {
             "name": "02 - KvK 4045 (18-05-2025 to 07-07-2025)",
             "files": [
                 "IData/02 - KvK 4045 (18-05-2025 to 07-07-2025)/18-05-2025.csv",
