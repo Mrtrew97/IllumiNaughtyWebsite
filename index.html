@@ -193,7 +193,7 @@ html, body {
     <div id="modal-subtitle" class="sub-tag">SYSTEM_ACCESS</div>
 
     <div id="auth-section">
-        <input type="text" id="id-search" class="modal-input" placeholder="ENTER LORD_ID" onkeydown="if(event.key==='Enter') verifyLordId()">
+        <input type="text" id="id-search" class="modal-input" placeholder="INPUT_LORD_ID" onkeydown="if(event.key==='Enter') verifyLordId()">
         <button class="save-btn" onclick="verifyLordId()">Verify ID</button>
     </div>
 
@@ -239,22 +239,22 @@ html, body {
                 <a href="alliance-stats.html" class="bento-card">
                     <div style="font-size: 2rem; margin-bottom: 10px;">📊</div>
                     <h2>KvK Player Tracker</h2>
-                    <p>Deep-dive metrics for registered players within the current war season.</p>
+                    <p>Metrics for registered players within the current KvK season.</p>
                 </a>
                 <a href="-I-Players.html" class="bento-card">
                     <div style="font-size: 2rem; margin-bottom: 10px;">📈</div>
                     <h2>-I- Player Tracker</h2>
-                    <p>Monitor weekly trends and growth deltas across our primary alliance roster.</p>
+                    <p>Monitor trends and growth deltas across our primary alliance roster throughout the KvKs.</p>
                 </a>
                 <a href="MatchupTracker.html" class="bento-card">
                     <div style="font-size: 2rem; margin-bottom: 10px;">⚔️</div>
                     <h2>Matchup Tracker</h2>
-                    <p>Real-time power comparisons between competing alliance tags.</p>
+                    <p>Stat comparisons between Alliances.</p>
                 </a>
                 <a href="TopPerf.html" class="bento-card">
                     <div style="font-size: 2rem; margin-bottom: 10px;">🏆</div>
                     <h2>Top Performances</h2>
-                    <p>Leaderboards showcasing top contributors in kill points and merits.</p>
+                    <p>KvK or Alliance specific leaderboards showcasing top contributors in each category.</p>
                 </a>
             </div>
             <div class="home-footer">
@@ -263,10 +263,10 @@ html, body {
         </div>
 
         <div class="side-panel events-panel">
-            <div class="panel-header"><h3>SCHEDULED OPERATIONS</h3></div>
+            <div class="panel-header"><h3>SCHEDULED EVENTS</h3></div>
             <div class="countdown-container">
                 <div class="timer" id="main-timer">00:00:00:00</div>
-                <div class="timer-target-name" id="timer-label">SELECT OPERATION</div>
+                <div class="timer-target-name" id="timer-label">SELECT EVENT</div>
             </div>
             <div id="events-list"></div>
         </div>
@@ -326,7 +326,7 @@ function updateUI() {
     } else {
         document.getElementById('profile-icon').innerText = "INPUT ID";
         document.getElementById('modal-title').innerText = "WELCOME TO ILLUMINAUGHTY";
-        document.getElementById('modal-subtitle').innerText = "SYSTEM_ACCESS_REQUIRED";
+        document.getElementById('modal-subtitle').innerText = "SYSTEM_ACCESS";
         authSection.style.display = "block";
         controlSection.style.display = "none";
     }
