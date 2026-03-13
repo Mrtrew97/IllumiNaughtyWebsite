@@ -199,7 +199,7 @@
             const endRes = await fetch(selB);
             const endData = parseCSV(await endRes.text());
             
-            let filteredRaw = Object.values(endData).filter(row => (parseInt(row.highest_power) || 0) >= 35000000);
+            let filteredRaw = Object.values(endData).filter(row => (parseInt(row.highest_power) || 0) >= 15000000);
             if (selectedServer !== "all") filteredRaw = filteredRaw.filter(row => row.home_server === selectedServer);
 
             currentTableData = filteredRaw.map(row => {
