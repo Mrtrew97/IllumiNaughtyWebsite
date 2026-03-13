@@ -376,7 +376,7 @@ function renderDisplay() {
         const activeTimeline = isGrowth ? data.growthTimeline : data.timeline;
         const lastValid = [...activeTimeline].reverse().find(v => v !== null);
         let displayVal = lastValid ? lastValid[currentSortMetric] : 0;
-        let displayLabel = isGrowth ? `${metrics[currentSortMetric]} GROWTH` : metrics[currentSortMetric];
+        let displayLabel = isGrowth ? `${metrics[currentSortMetric]} SINCE LAST KVK` : metrics[currentSortMetric];
 
         const card = document.createElement('div');
         card.className = `growth-card ${index < 3 ? 'glow-'+(index+1) : 'glow-purple'}`;
