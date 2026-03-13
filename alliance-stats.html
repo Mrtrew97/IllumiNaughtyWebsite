@@ -126,7 +126,6 @@
         'stone_spent': 'Stone Spent', 'mana_spent': 'Mana Spent'
     };
     
-    // Ensure this is properly initialized for use in parseCSV
     const numericFields = Object.keys(metrics);
 
     function init() {
@@ -165,6 +164,7 @@
             if (displayFiles.length > 0) {
                 const startSelect = document.getElementById('dateStart');
                 const endSelect = document.getElementById('dateEnd');
+                const allianceSelect = document.getElementById('allianceSelect');
                 startSelect.innerHTML = ""; endSelect.innerHTML = "";
                 
                 displayFiles.forEach((fullPath) => {
@@ -178,10 +178,24 @@
                 
                 endSelect.selectedIndex = 0;
                 if (displayFiles.length > 1) startSelect.selectedIndex = 1;
+
+                // CHECK FOR URL PARAMETERS
+                const urlParams = new URLSearchParams(window.location.search);
+                const allianceToFilter = urlParams.get('alliance');
+
+                if (allianceToFilter) {
+                    // Look through options to find the one matching the tag
+                    for (let i = 0; i < allianceSelect.options.length; i++) {
+                        if (allianceSelect.options[i].text.includes(`[${allianceToFilter}]`) || 
+                            allianceSelect.options[i].text.startsWith(allianceToFilter)) {
+                            allianceSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
                 
                 await processData();
 
-                const urlParams = new URLSearchParams(window.location.search);
                 const targetId = urlParams.get('id');
                 if (targetId) enterSoloMode(targetId);
             }
