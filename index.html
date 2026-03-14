@@ -124,8 +124,35 @@ html, body {
     transition: 0.3s ease; background: var(--card-bg); 
     border: 1px solid var(--border-color); border-radius: 20px; padding: 30px; 
     text-align: center; backdrop-filter: blur(8px); box-sizing: border-box;
+    position: relative; /* Container for the ribbon */
+    overflow: hidden; /* Clips the ribbon ends */
 }
-.bento-card:hover { transform: translateY(-5px); border-color: rgba(147, 51, 234, 0.5); background: rgba(147, 51, 234, 0.05); }
+.bento-card:hover:not(.disabled) { transform: translateY(-5px); border-color: rgba(147, 51, 234, 0.5); background: rgba(147, 51, 234, 0.05); }
+
+/* UPDATED MAINTENANCE RIBBON */
+.bento-card.disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.maintenance-banner {
+    position: absolute;
+    top: 22px;
+    right: -32px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 5px 0;
+    width: 140px; /* Increased width to prevent text cut-off */
+    transform: rotate(45deg);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    z-index: 10;
+    pointer-events: none;
+}
+
 .bento-card h2 { margin: 0; font-size: 1.3rem; color: var(--text-main); font-weight: 700; }
 .bento-card p { color: var(--text-dim); font-size: 0.85rem; margin-top: 8px; max-width: 210px; line-height: 1.4; }
 
@@ -241,11 +268,14 @@ html, body {
                     <h2>-I- Player Tracker</h2>
                     <p>Monitor trends and growth deltas across our primary alliance roster throughout the KvKs.</p>
                 </a>
-                <a href="MatchupTracker.html" class="bento-card">
+                
+                <div class="bento-card disabled">
+                    <div class="maintenance-banner">Maintenance</div>
                     <div style="font-size: 2rem; margin-bottom: 10px;">⚔️</div>
                     <h2>Matchup Tracker</h2>
                     <p>Stat comparisons between Alliances.</p>
-                </a>
+                </div>
+                
                 <a href="TopPerf.html" class="bento-card">
                     <div style="font-size: 2rem; margin-bottom: 10px;">🏆</div>
                     <h2>Top Performances</h2>
