@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="https://raw.githubusercontent.com/Mrtrew97/Illumi-Naughty/main/Header.png" type="image/png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matchup Analysis // KVK-DATA</title>
     <style>
@@ -155,7 +154,7 @@
         .multi-select-box { 
             width: 100%; 
             height: auto; 
-            min-height: 50px;
+            min-height: 400px;
             background: rgba(0, 0, 0, 0.3); 
             border: 1px solid var(--border-color); 
             border-radius: 12px; 
@@ -165,7 +164,7 @@
             margin-top: 12px; 
             outline: none !important; 
             padding: 12px 8px 20px 8px;
-            overflow: hidden; 
+            overflow-y: auto; 
             appearance: none;
             text-align: center;
             box-sizing: border-box; 
@@ -176,8 +175,8 @@
             border-radius: 6px; 
             margin-bottom: 2px; 
             cursor: pointer; 
-            color: #ffffff; /* PURE WHITE */
-            font-weight: 800; /* BOLD */
+            color: #ffffff; 
+            font-weight: 800; 
             background: transparent;
         }
 
@@ -252,6 +251,7 @@
         .delta-value { font-size: 0.8rem; font-weight: 900; }
         .indicator-arrow { font-size: 1.4rem; font-weight: 900; }
         .stat-label { font-size: 0.75rem; color: #d1cada; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 5px; }
+        
         .loading-overlay { position: fixed; inset: 0; background: rgba(3,0,5,0.98); display: none; justify-content: center; align-items: center; z-index: 2000; }
         .loading-text { color: var(--accent-purple); font-weight: 900; letter-spacing: 5px; font-size: 0.7rem; }
         .positive { color: var(--positive); }
@@ -260,13 +260,13 @@
 </head>
 <body>
 <div class="loading-overlay" id="globalLoader">
-    <div class="loading-text">DEBUG_MODE_ACTIVE</div>
+    <div class="loading-text">CALCULATING_MATCHUP_DATA...</div>
 </div>
 <div class="app-container">
     <header class="header-nav">
         <a href="index.html" class="exit-btn">← SYSTEM_RETURN</a>
         <div style="text-align: right;">
-            <div class="stat-label" id="namingSourceLabel">Syncing file dates...</div>
+            <div class="stat-label" id="namingSourceLabel">Syncing timeline files...</div>
             <h1 style="margin:0; font-size: 1.5rem; font-weight: 900; letter-spacing: -1px; text-transform: uppercase;">MATCHUP_ANALYSIS</h1>
         </div>
     </header>
@@ -330,22 +330,41 @@
     
     let fileDataCache = {}; 
     let masterAllianceMap = {}; 
-    let fileListData = {};
 
     function parseToNum(val) {
-        if (!val || val === '-') return 0;
+        if (val === undefined || val === null || val === '-' || val === '') return 0;
         const clean = val.toString().replace(/[^0-9]/g, '');
-        return parseInt(clean, 10) || 0;
+        const num = parseInt(clean, 10);
+        return isNaN(num) ? 0 : num;
     }
 
     function parseCSV(text) {
         const lines = text.split(/\r?\n/).filter(l => l.trim());
         if (lines.length === 0) return [];
-        const headers = lines[0].split(',').map(h => h.toLowerCase().replace(/["\s]/g, ''));
+        
+        const splitLine = (line) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let char of line) {
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else current += char;
+            }
+            result.push(current.trim());
+            return result;
+        };
+
+        const headers = splitLine(lines[0]).map(h => h.toLowerCase().replace(/["\s]/g, ''));
+        
         return lines.slice(1).map(line => {
-            const cells = line.split(',');
+            const cells = splitLine(line);
             const row = {};
-            headers.forEach((h, i) => { row[h] = cells[i] ? cells[i].replace(/^"|"$/g, '').trim() : ""; });
+            headers.forEach((h, i) => { 
+                row[h] = cells[i] || ""; 
+            });
             return row;
         });
     }
@@ -354,7 +373,7 @@
         showLoader(true);
         try {
             const response = await fetch('data/files.json');
-            fileListData = await response.json();
+            const fileListData = await response.json();
             const foundFiles = fileListData.mainDataFiles;
             if (foundFiles.length === 0) return;
 
@@ -363,12 +382,11 @@
             const masterData = parseCSV(await masterRes.text());
             
             masterData.forEach(row => {
-                const sID = row.home_server;
-                const tag = row.alliance_tag;
-                if (sID && tag && !masterAllianceMap[sID]) masterAllianceMap[sID] = tag;
+                if (row.home_server && row.alliance_tag && !masterAllianceMap[row.home_server]) {
+                    masterAllianceMap[row.home_server] = row.alliance_tag;
+                }
             });
 
-            document.getElementById('namingSourceLabel').innerText = `Names: ${oldestFile.replace('.csv','')}`;
             const sSelect = document.getElementById('dateStart');
             const eSelect = document.getElementById('dateEnd');
             
@@ -380,40 +398,38 @@
                 eSelect.appendChild(opt);
             });
 
-            await handleDateChange();
-        } catch (e) { console.error(e); }
-        showLoader(false);
-    }
+            sSelect.selectedIndex = foundFiles.length - 1;
+            eSelect.selectedIndex = 0;
 
-    function setupToggleLogic(selectId) {
-        const select = document.getElementById(selectId);
-        select.addEventListener('mousedown', function(e) {
-            e.preventDefault(); 
-            const option = e.target;
-            if (option.tagName === 'OPTION') {
-                option.selected = !option.selected;
-                compareData();
-            }
-        });
+            await handleDateChange();
+        } catch (e) { console.error("Initialization Error:", e); }
+        showLoader(false);
     }
 
     async function handleDateChange() {
         showLoader(true);
         const startFile = document.getElementById('dateStart').value;
         const endFile = document.getElementById('dateEnd').value;
-        if (!fileDataCache[startFile]) fileDataCache[startFile] = parseCSV(await (await fetch(startFile)).text());
-        if (!fileDataCache[endFile]) fileDataCache[endFile] = parseCSV(await (await fetch(endFile)).text());
+        
+        if (!fileDataCache[startFile]) {
+            const res = await fetch(startFile);
+            fileDataCache[startFile] = parseCSV(await res.text());
+        }
+        if (!fileDataCache[endFile]) {
+            const res = await fetch(endFile);
+            fileDataCache[endFile] = parseCSV(await res.text());
+        }
+        
         updateAllianceLists();
         showLoader(false);
     }
 
     function updateAllianceLists() {
-        const sortedSIDs = Object.keys(masterAllianceMap).sort((a,b) => a - b);
+        const sortedSIDs = Object.keys(masterAllianceMap).sort((a,b) => parseInt(a) - parseInt(b));
         ['allianceStart', 'allianceEnd'].forEach(id => {
             const select = document.getElementById(id);
             const savedSelections = Array.from(select.selectedOptions).map(o => o.value);
             select.innerHTML = '';
-            select.size = sortedSIDs.length;
             sortedSIDs.forEach(sid => {
                 const opt = document.createElement('option');
                 opt.value = sid; 
@@ -426,57 +442,99 @@
         compareData();
     }
 
-    function calculateHybrid(selectedSIDs, startData, endData) {
-        const startMap = new Map(startData.filter(r => selectedSIDs.includes(r.home_server)).map(p => [p.lord_id, p]));
-        const endMap = new Map(endData.filter(r => selectedSIDs.includes(r.home_server)).map(p => [p.lord_id, p]));
-        const allIds = new Set([...startMap.keys(), ...endMap.keys()]);
+    function calculateCoalitionStats(selectedSIDs, startData, endData) {
+        const sids = selectedSIDs.map(String);
+        const startMap = new Map();
+        startData.forEach(p => {
+            if (sids.includes(String(p.home_server))) {
+                startMap.set(p.lord_id, p);
+            }
+        });
+        
         const results = {};
         Object.keys(metrics).forEach(k => results[k] = 0);
-        allIds.forEach(id => {
-            const pStart = startMap.get(id) || {};
-            const pEnd = endMap.get(id) || {};
-            const power = Math.max(parseToNum(pStart.highest_power), parseToNum(pEnd.highest_power));
-            if (power < POWER_THRESHOLD) return;
+
+        endData.forEach(pEnd => {
+            if (!sids.includes(String(pEnd.home_server))) return;
+
+            const endPower = parseToNum(pEnd.highest_power);
+            if (endPower < POWER_THRESHOLD) return;
+
+            const pStart = startMap.get(pEnd.lord_id);
+
             Object.keys(metrics).forEach(mKey => {
-                const sVal = parseToNum(pStart[mKey]);
                 const eVal = parseToNum(pEnd[mKey]);
-                results[mKey] += (mKey === 'highest_power') ? eVal : (eVal - sVal);
+                if (mKey === 'highest_power') {
+                    results[mKey] += eVal;
+                } else {
+                    const sVal = pStart ? parseToNum(pStart[mKey]) : 0;
+                    results[mKey] += (eVal - sVal);
+                }
             });
         });
         return results;
     }
 
     function compareData() {
-        const sF = document.getElementById('dateStart').value;
-        const eF = document.getElementById('dateEnd').value;
-        const sSel = Array.from(document.getElementById('allianceStart').selectedOptions);
-        const eSel = Array.from(document.getElementById('allianceEnd').selectedOptions);
-        if (!sSel.length || !eSel.length) return;
-
-        const groupA = calculateHybrid(sSel.map(o => o.value), fileDataCache[sF], fileDataCache[eF]);
-        const groupB = calculateHybrid(eSel.map(o => o.value), fileDataCache[sF], fileDataCache[eF]);
+        const sFile = document.getElementById('dateStart').value;
+        const eFile = document.getElementById('dateEnd').value;
+        const selA = Array.from(document.getElementById('allianceStart').selectedOptions).map(o => o.value);
+        const selB = Array.from(document.getElementById('allianceEnd').selectedOptions).map(o => o.value);
         
-        document.getElementById('tagA').innerText = sSel.map(o => o.getAttribute('data-tag')).join(' + ');
-        document.getElementById('tagB').innerText = eSel.map(o => o.getAttribute('data-tag')).join(' + ');
+        if (!selA.length || !selB.length) return;
+
+        const dataStart = fileDataCache[sFile];
+        const dataEnd = fileDataCache[eFile];
+
+        const statsA = calculateCoalitionStats(selA, dataStart, dataEnd);
+        const statsB = calculateCoalitionStats(selB, dataStart, dataEnd);
+        
+        document.getElementById('tagA').innerText = Array.from(document.getElementById('allianceStart').selectedOptions).map(o => o.getAttribute('data-tag')).join(' + ') || "GROUP_A";
+        document.getElementById('tagB').innerText = Array.from(document.getElementById('allianceEnd').selectedOptions).map(o => o.getAttribute('data-tag')).join(' + ') || "GROUP_B";
         
         const container = document.getElementById('metricsDisplay');
         container.innerHTML = Object.entries(metrics).map(([key, label]) => {
-            const diff = groupA[key] - groupB[key];
-            const arrowA = diff > 0 ? `<span class="indicator-arrow positive">←</span>` : '';
-            const arrowB = diff < 0 ? `<span class="indicator-arrow negative">→</span>` : '';
-            return `<div class="metric-row">
-                    <div class="col-a">${Math.round(groupA[key]).toLocaleString()} ${arrowA}</div>
+            const valA = statsA[key];
+            const valB = statsB[key];
+            const diff = valA - valB;
+            
+            const arrowA = valA > valB ? `<span class="indicator-arrow positive">←</span>` : '';
+            const arrowB = valB > valA ? `<span class="indicator-arrow negative">→</span>` : '';
+            
+            return `
+                <div class="metric-row">
+                    <div class="col-a">${Math.round(valA).toLocaleString()} ${arrowA}</div>
                     <div class="col-gap">
                         <span class="metric-label-style">${label}</span>
-                        <span class="delta-value ${diff >= 0 ? 'positive' : 'negative'}">${(diff >= 0 ? '+' : '') + Math.round(diff).toLocaleString()}</span>
+                        <span class="delta-value ${diff >= 0 ? 'positive' : 'negative'}">
+                            ${(diff >= 0 ? '+' : '') + Math.round(diff).toLocaleString()}
+                        </span>
                     </div>
-                    <div class="col-b">${arrowB} ${Math.round(groupB[key]).toLocaleString()}</div>
+                    <div class="col-b">${arrowB} ${Math.round(valB).toLocaleString()}</div>
                 </div>`;
         }).join('');
     }
 
-    function showLoader(show) { document.getElementById('globalLoader').style.display = show ? 'flex' : 'none'; }
-    window.onload = () => { setupToggleLogic('allianceStart'); setupToggleLogic('allianceEnd'); scanFiles(); };
+    function setupToggleLogic(selectId) {
+        const select = document.getElementById(selectId);
+        select.addEventListener('mousedown', function(e) {
+            if (e.target.tagName === 'OPTION') {
+                e.preventDefault(); 
+                e.target.selected = !e.target.selected;
+                compareData();
+            }
+        });
+    }
+
+    function showLoader(show) { 
+        document.getElementById('globalLoader').style.display = show ? 'flex' : 'none'; 
+    }
+    
+    window.onload = () => { 
+        setupToggleLogic('allianceStart'); 
+        setupToggleLogic('allianceEnd'); 
+        scanFiles(); 
+    };
 </script>
 </body>
 </html>
